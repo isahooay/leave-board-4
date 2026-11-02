@@ -2131,6 +2131,14 @@ details.more>.help,details.more>.guide{margin-top:8px}
     if (PR) { const B = members.find(m => m.route === PR); if (B && pd.off.includes(B.id) && !pd.off.includes(L.id) && (!pd.runs[PR] || pd.runs[PR].pid !== L.id)) out.push(`${B.name}（${PR}）休假時，${L.name}要跑 ${PR} 線。`); }
     return out;
   }
+  // 硬規則：組長只能跟機動組換線，不能跟組員換。檢查換完的結果：組員拿到組長原本的線、同時組長拿到那位組員原本的線＝組長跟組員對調
+  const LEADER_RULE = '組長只能跟機動組換線';
+  function leaderMemberSwap(cfg, base, pd2) {
+    const L = cfg.people.find(p => p.role === 'leader'), lr0 = base.leaderRoute, lr1 = pd2.leaderRoute;
+    if (!L || !lr0 || !lr1 || lr0 === lr1) return false;
+    const m0 = base.runs[lr1] && base.runs[lr1].pid, m1 = pd2.runs[lr0] && pd2.runs[lr0].pid;
+    return m0 !== 'mobile' && m0 !== L.id && m0 === m1;
+  }
   const cleanSwaps = (raw, dim) => {
     const out = {}; if (!raw || typeof raw !== 'object') return out;
     for (const k of Object.keys(raw)) { const d = Number(k); if (!Number.isInteger(d) || d < 1 || d > dim || !raw[k] || typeof raw[k] !== 'object') continue;
@@ -2145,11 +2153,19 @@ details.more>.help,details.more>.guide{margin-top:8px}
     if (!r1 || !r2 || r1 === r2 || !cur.runs[r1] || !cur.runs[r2]) return { ok: false, reason: '請選兩條不同的線。' };
     const a = cur.runs[r1].pid, b = cur.runs[r2].pid;
     if (a === b) return { ok: false, reason: a === 'mobile' ? '兩條線都是機動組在跑，對調沒有差別。' : `${nm(a)}已經在跑這兩條線。` };
+    const Lid = (cfg.people.find(p => p.role === 'leader') || {}).id;
+    if ((a === Lid && b !== 'mobile') || (b === Lid && a !== 'mobile')) return { ok: false, reason: LEADER_RULE + '。' };
     const ov = {}; for (const r of Object.keys(cur.runs)) { const pid = r === r1 ? b : r === r2 ? a : cur.runs[r].pid; if (pid !== base.runs[r].pid) ov[r] = pid; }
-    let pd2 = base; if (Object.keys(ov).length) { pd2 = swapDay(cfg, base, ov); if (!pd2) return { ok: false, reason: '這樣換不成立（只能對調當天上班的人跟機動組的線）。' }; }
+    let pd2 = base; if (Object.keys(ov).length) { pd2 = swapDay(cfg, base, ov); if (!pd2) return { ok: false, reason: '這樣換不成立（只能對調當天上班的人跟機動組的線）。' }; if (leaderMemberSwap(cfg, base, pd2)) return { ok: false, reason: LEADER_RULE + '：這樣換完等於組長跟組員對調。' }; }
     const bad = dayIssues(cfg, pd2); if (bad.length) return { ok: false, reason: bad[0] };
     const next = JSON.parse(JSON.stringify(cleanSwaps(swaps, dim))); if (Object.keys(ov).length) next[day] = ov; else delete next[day];
     return { ok: true, swaps: next };
+  }
+  // 只丟掉違反「組長只能跟機動組換線」的存檔換線（讀檔時用），回傳留下的與丟掉的日子
+  function dropRuleBreaking(cfg, off, dim, swaps) {
+    const base = dayPlans(cfg, off, dim), clean = cleanSwaps(swaps, dim), kept = {}, dropped = [];
+    for (const k of Object.keys(clean)) { const d = Number(k), q = base[d] && swapDay(cfg, base[d], clean[k]); if (q && leaderMemberSwap(cfg, base[d], q)) dropped.push(d); else kept[d] = clean[k]; }
+    return { swaps: kept, dropped: dropped.sort((x, y) => x - y) };
   }
   // 第二個下拉選單：排除第一條線，每個選項都先試算能不能換，不能換的帶原因（讓畫面直接顯示）
   function swapChoices(cfg, off, dim, swaps, day, first) {
@@ -2159,7 +2175,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   // 重新隨機排假之後：還成立的換線留著，不成立的丟掉，回傳丟掉的日子
   function reconcileSwaps(cfg, off, dim, swaps) {
     const base = dayPlans(cfg, off, dim), kept = {}, dropped = [], clean = cleanSwaps(swaps, dim);
-    for (const k of Object.keys(clean)) { const d = Number(k), pd2 = swapDay(cfg, base[d], clean[k]); if (pd2 && !dayIssues(cfg, pd2).length) kept[d] = clean[k]; else dropped.push(d); }
+    for (const k of Object.keys(clean)) { const d = Number(k), pd2 = swapDay(cfg, base[d], clean[k]); if (pd2 && !dayIssues(cfg, pd2).length && !leaderMemberSwap(cfg, base[d], pd2)) kept[d] = clean[k]; else dropped.push(d); }
     return { swaps: kept, dropped: dropped.sort((x, y) => x - y) };
   }
 
@@ -2376,7 +2392,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
       const miss = fx.filter(d => !o.includes(d)); if (miss.length) out.push(`${p.name}的指定休 ${miss.map(date).join('、')} 被取消了。`);
     }
     const plan = dayPlans(cfg, md.off, dim, md.swaps);
-    { const bp = md.swaps && Object.keys(md.swaps).length ? dayPlans(cfg, md.off, dim) : null; if (bp) for (const k of Object.keys(md.swaps)) { const d = Number(k); if (!bp[d] || !swapDay(cfg, bp[d], md.swaps[k])) out.push(`${date(d)} 手動換線已經不成立，請按「還原隨機」。`); } }
+    { const bp = md.swaps && Object.keys(md.swaps).length ? dayPlans(cfg, md.off, dim) : null; if (bp) for (const k of Object.keys(md.swaps)) { const d = Number(k); { const q = bp[d] && swapDay(cfg, bp[d], md.swaps[k]); if (!q) out.push(`${date(d)} 手動換線已經不成立，請按「還原隨機」。`); else if (leaderMemberSwap(cfg, bp[d], q)) out.push(`${date(d)} 手動換線不成立：${LEADER_RULE}，請按「還原隨機」。`); } } }
     for (let d = 1; d <= dim; d++) {
       const pd = plan[d];
       if (pd.off.length > MAX_OFF) out.push(`${date(d)} 有 ${pd.off.length} 人休假（${pd.off.map(id => cfg.people.find(p => p.id === id).name).join('、')}），同組每天最多休 ${MAX_OFF} 人。`);
@@ -2501,7 +2517,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     md.runCap = res.runCap || 0; md.lowLeave = !!res.lowLeave; md.relaxed = (res.relaxed || []).map(r => ({ id: r.id, name: r.name, cap: r.cap }));
   }
 
-  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapChoices, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
+  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = Small; else root.SmallCore = Small;
 })(typeof self !== 'undefined' ? self : this);
 </script>
@@ -2527,6 +2543,9 @@ details.more>.help,details.more>.guide{margin-top:8px}
     st.month = raw && validKey(raw.month) ? raw.month : nowMonth();
     st.badSig = ''; st.badProblems = []; st.msg = null;
     ensureMonth();
+    // 舊存檔裡違反「組長只能跟機動組換線」的換線：丟掉並通知
+    const gone = []; for (const k of Object.keys(st.months)) { const m = st.months[k]; if (!m.generated || !m.swaps || !Object.keys(m.swaps).length) continue; const rc = Small.dropRuleBreaking(st.cfg, m.off, Core.daysInMonthOf(k), m.swaps); if (rc.dropped.length) { m.swaps = rc.swaps; rc.dropped.forEach(d => gone.push(`${Number(k.split('-')[1])}/${d}`)); } }
+    if (gone.length) { st.msg = { cls: 'warn', html: `${gone.length} 天的手動換線違反「${Small.LEADER_RULE}」，已移除（${gone.join('、')}），回到隨機排的結果。` }; save(); }
   }
   function save() {
     const months = {}; for (const k of Object.keys(st.months)) months[k] = st.months[k];
