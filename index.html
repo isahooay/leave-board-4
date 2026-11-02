@@ -492,7 +492,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
         <li>每人當月應休日數一樣；休假平均分散在整個月，一般連休 1～2 天、最多 3 天（應休超過 11 天、或長假除外）；不會連續上班 7 天。</li>
         <li>應休日數 ≤10 天：連上上限直接用 6 天；超過 10 天：先試 4 天，排不出來再放寬到 5、6 天。</li>
         <li>排不出來會標示「排不出」並列出原因與建議；最多試 3 版、8 秒，同一份設定確認排不出來就不會重跑。</li>
-        <li class="hidden" id="ruleB">謝和成組：B 線組員休假、組長上班時，組長一定跑 B 線，另一條線才輪到機動組。</li>
+        <li>換線：組員永遠只跑自己的線，只有休假才由組長或機動組代跑；唯一能換的是同一組、同一天「組長代跑的線」跟「機動組代跑的線」對換，那天沒有機動組代跑就不能換。</li>
       </ul>
     </details>
   </main>
@@ -500,7 +500,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   <dialog class="swapdlg" id="swapDlg" aria-labelledby="swH">
     <form method="dialog" id="swForm">
       <h3 id="swH">換線</h3>
-      <p>只能換當天上班、同一組的人（機動組代跑的線也可以換）。換完會標上「手動」，按「還原隨機」可以回到隨機排的結果。</p>
+      <p>組員只跑自己的線，不能換。這裡只能把「組長代跑的線」跟「機動組代跑的線」對換（同一組、同一天）。換完會標上「手動」，按「還原隨機」可以回到隨機排的結果。</p>
       <div><label class="f" for="swA">第一條線</label><select id="swA"></select></div>
       <div><label class="f" for="swB">第二條線</label><select id="swB"></select></div>
       <p class="sw-pre" id="swPre" aria-live="polite"></p>
@@ -2034,12 +2034,11 @@ details.more>.help,details.more>.guide{margin-top:8px}
   const GROUPS = [
     { id: 'g1', name: '施品卉組', leader: '施品卉', members: [['許庭碩', 'BD'], ['蔣鏞', 'G'], ['陳奕捷', 'H']], vacant: [] },
     { id: 'g2', name: '林芷妃組', leader: '林芷妃', members: [['林晉德', 'F'], ['張云琪', 'AB']], vacant: ['I'] },
-    { id: 'g3', name: '謝和成組', leader: '謝和成', members: [['劉耀齊', 'B'], ['王銘志', 'C'], ['許志賓', 'E']], vacant: [], fixedLeader: true, priority: 'B' },
+    { id: 'g3', name: '謝和成組', leader: '謝和成', members: [['劉耀齊', 'B'], ['王銘志', 'C'], ['許志賓', 'E']], vacant: [], fixedLeader: true },
     { id: 'g4', name: '李欣妮組', leader: '李欣妮', members: [['鄭智穎', 'J'], ['王鈺淩', 'A'], ['湯玉芬', 'K']], vacant: [] }
   ];
   const groupDef = gid => GROUPS.find(g => g.id === gid) || GROUPS[0];
   const isFixedLeader = gid => !!groupDef(gid).fixedLeader;
-  const priorityRoute = cfg => groupDef(cfg.gid).priority || '';   // 只有謝和成組：B 線組員休時，組長盡量跑 B
   const MAX_OFF = 2;                 // 每天最多休 2 人
   const MAX_TRIES = 3, TOTAL_MS = 8000;
   const IDS = ['L', 'M1', 'M2', 'M3'];
@@ -2082,7 +2081,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   // 轉成 core.js 認得的設定（一組、三條線），這樣 targetOff、personCaps、distributionReport…都能直接沿用
   function coreCfg(cfg) {
     const routes = [...cfg.people.filter(p => p.role === 'member').map(p => p.route), ...(cfg.vacant || [])];
-    return { routes, groups: [{ id: 'g1', name: groupDef(cfg.gid).name, routes, priority: routes.includes(priorityRoute(cfg)) ? priorityRoute(cfg) : '' }], people: cfg.people.map(p => ({ id: p.id, name: p.name, role: p.role, group: 'g1', route: p.route })) };
+    return { routes, groups: [{ id: 'g1', name: groupDef(cfg.gid).name, routes, priority: '' }], people: cfg.people.map(p => ({ id: p.id, name: p.name, role: p.role, group: 'g1', route: p.route })) };
   }
   function newMonth(cfg, key) { const md = Core.rawMonthData(coreCfg(cfg), key); delete md.moveOut; delete md.moveIn; md.runCap = 0; md.relaxed = []; md.lowLeave = false; return md; }
   function setQuota(cfg, md, q) { for (const p of cfg.people) md.quota[p.id] = q; }
@@ -2116,7 +2115,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     const lr = routes.find(r => want[r] === L.id) || '';
     return { off: pd.off, runs, leaderRoute: lr, mobile: mob, extra: pd.extra, manual: changed.sort() };
   }
-  // 這一天的路線有沒有問題（每條線都有人跑、組長只跑一條且休假不跑、上班的人都有線、優先路線規則）
+  // 這一天的路線有沒有問題（每條線都有人跑、組長只跑一條且休假不跑、上班的人都有線）
   function dayIssues(cfg, pd) {
     const out = [], members = cfg.people.filter(p => p.role === 'member'), L = cfg.people.find(p => p.role === 'leader');
     for (const r of [...members.map(m => m.route), ...(cfg.vacant || [])]) if (!pd.runs[r]) out.push(`${r} 線沒有人跑。`);
@@ -2127,17 +2126,14 @@ details.more>.help,details.more>.guide{margin-top:8px}
       if (n > 1) out.push(`${p.name}跑了 ${n} 條線。`);
       if (p.role === 'member' && !pd.off.includes(p.id) && pd.extra !== p.id && n !== 1) out.push(`${p.name}上班卻沒有線。`);
     }
-    const PR = priorityRoute(cfg);
-    if (PR) { const B = members.find(m => m.route === PR); if (B && pd.off.includes(B.id) && !pd.off.includes(L.id) && (!pd.runs[PR] || pd.runs[PR].pid !== L.id)) out.push(`${B.name}（${PR}）休假時，${L.name}要跑 ${PR} 線。`); }
     return out;
   }
-  // 硬規則：組長只能跟機動組換線，不能跟組員換。檢查換完的結果：組員拿到組長原本的線、同時組長拿到那位組員原本的線＝組長跟組員對調
-  const LEADER_RULE = '組長只能跟機動組換線';
+  // 硬規則：組員永遠只跑自己的線（休假才由組長或機動組代跑）；唯一能換的是「同一天、同一組」組長代跑的線 ⇄ 機動組代跑的線
+  const LEADER_RULE = '組員不能換線，只有組長代跑的線可以跟機動組代跑的線對換';
+  // 換完之後，被改到的每條線，原本跟現在的跑線人都只能是組長或機動組
   function leaderMemberSwap(cfg, base, pd2) {
-    const L = cfg.people.find(p => p.role === 'leader'), lr0 = base.leaderRoute, lr1 = pd2.leaderRoute;
-    if (!L || !lr0 || !lr1 || lr0 === lr1) return false;
-    const m0 = base.runs[lr1] && base.runs[lr1].pid, m1 = pd2.runs[lr0] && pd2.runs[lr0].pid;
-    return m0 !== 'mobile' && m0 !== L.id && m0 === m1;
+    const L = cfg.people.find(p => p.role === 'leader'), ok = pid => pid === 'mobile' || (L && pid === L.id);
+    return Object.keys(pd2.runs).some(r => pd2.runs[r].pid !== base.runs[r].pid && !(ok(pd2.runs[r].pid) && ok(base.runs[r].pid)));
   }
   const cleanSwaps = (raw, dim) => {
     const out = {}; if (!raw || typeof raw !== 'object') return out;
@@ -2154,9 +2150,9 @@ details.more>.help,details.more>.guide{margin-top:8px}
     const a = cur.runs[r1].pid, b = cur.runs[r2].pid;
     if (a === b) return { ok: false, reason: a === 'mobile' ? '兩條線都是機動組在跑，對調沒有差別。' : `${nm(a)}已經在跑這兩條線。` };
     const Lid = (cfg.people.find(p => p.role === 'leader') || {}).id;
-    if ((a === Lid && b !== 'mobile') || (b === Lid && a !== 'mobile')) return { ok: false, reason: LEADER_RULE + '。' };
+    if (!((a === Lid && b === 'mobile') || (b === Lid && a === 'mobile'))) return { ok: false, reason: (a === 'mobile' && b === 'mobile') ? '兩條線都是機動組在跑，對調沒有差別。' : '組員不能換線，只有組長代跑的線可以跟機動組代跑的線對換。' };
     const ov = {}; for (const r of Object.keys(cur.runs)) { const pid = r === r1 ? b : r === r2 ? a : cur.runs[r].pid; if (pid !== base.runs[r].pid) ov[r] = pid; }
-    let pd2 = base; if (Object.keys(ov).length) { pd2 = swapDay(cfg, base, ov); if (!pd2) return { ok: false, reason: '這樣換不成立（只能對調當天上班的人跟機動組的線）。' }; if (leaderMemberSwap(cfg, base, pd2)) return { ok: false, reason: LEADER_RULE + '：這樣換完等於組長跟組員對調。' }; }
+    let pd2 = base; if (Object.keys(ov).length) { pd2 = swapDay(cfg, base, ov); if (!pd2) return { ok: false, reason: '這樣換不成立（只能對調當天上班的人跟機動組的線）。' }; if (leaderMemberSwap(cfg, base, pd2)) return { ok: false, reason: '組員不能換線，只有組長代跑的線可以跟機動組代跑的線對換。' }; }
     const bad = dayIssues(cfg, pd2); if (bad.length) return { ok: false, reason: bad[0] };
     const next = JSON.parse(JSON.stringify(cleanSwaps(swaps, dim))); if (Object.keys(ov).length) next[day] = ov; else delete next[day];
     return { ok: true, swaps: next };
@@ -2167,10 +2163,16 @@ details.more>.help,details.more>.guide{margin-top:8px}
     for (const k of Object.keys(clean)) { const d = Number(k), q = base[d] && swapDay(cfg, base[d], clean[k]); if (q && leaderMemberSwap(cfg, base[d], q)) dropped.push(d); else kept[d] = clean[k]; }
     return { swaps: kept, dropped: dropped.sort((x, y) => x - y) };
   }
-  // 第二個下拉選單：排除第一條線，每個選項都先試算能不能換，不能換的帶原因（讓畫面直接顯示）
+  // 這一天能換的線：只有組長代跑的那條線＋機動組代跑的線；兩邊要同時有才能換（沒有機動組代跑的日子回傳空陣列）
+  function swapLines(cfg, off, dim, swaps, day) {
+    const cur = dayPlans(cfg, off, dim, swaps)[day], L = cfg.people.find(p => p.role === 'leader'); if (!cur || !L) return [];
+    const out = Object.keys(cur.runs).filter(r => cur.runs[r].pid === L.id || cur.runs[r].pid === 'mobile').map(r => ({ route: r, pid: cur.runs[r].pid }));
+    return out.some(x => x.pid === L.id) && out.some(x => x.pid === 'mobile') ? out : [];
+  }
+  // 第二個下拉選單：排除第一條線，只列「另一邊」（第一條是組長的線 → 機動組的線；第一條是機動組的線 → 組長的線），每個選項都先試算
   function swapChoices(cfg, off, dim, swaps, day, first) {
-    const cur = dayPlans(cfg, off, dim, swaps)[day]; if (!cur) return [];
-    return Object.keys(cur.runs).filter(r => r !== first).map(r => { const t = trySwap(cfg, off, dim, swaps, day, first, r); return { route: r, pid: cur.runs[r].pid, ok: t.ok, reason: t.ok ? '' : t.reason }; });
+    const ls = swapLines(cfg, off, dim, swaps, day), f = ls.find(x => x.route === first); if (!f) return [];
+    return ls.filter(x => x.route !== first && (x.pid === 'mobile') !== (f.pid === 'mobile')).map(x => { const t = trySwap(cfg, off, dim, swaps, day, first, x.route); return { route: x.route, pid: x.pid, ok: t.ok, reason: t.ok ? '' : t.reason }; });
   }
   // 重新隨機排假之後：還成立的換線留著，不成立的丟掉，回傳丟掉的日子
   function reconcileSwaps(cfg, off, dim, swaps) {
@@ -2180,20 +2182,19 @@ details.more>.help,details.more>.guide{margin-top:8px}
   }
 
   // ---------- 每天誰跑哪條線 ----------
-  // 規則：組員休 → 組長代跑；組長也休（或同天兩位組員休、組長只能顧一條）→ 機動組。謝和成組：B 線組員休且組長上班時，組長一定跑 B。
+  // 規則：組員休 → 組長代跑；組長也休（或同天兩位組員休、組長只能顧一條）→ 機動組。每組同一套邏輯（組長代跑哪條線依代班次數平均）。
   function dayPlans(cfg, off, dim, swaps) {
     const members = cfg.people.filter(p => p.role === 'member'), leader = cfg.people.find(p => p.role === 'leader'), vac = (cfg.vacant || []).filter(Boolean);
     const offSet = {}; for (const p of cfg.people) offSet[p.id] = new Set((off && off[p.id]) || []);
     const lcount = {}; [...members.map(m => m.route), ...vac].forEach(r => { lcount[r] = 0; });
-    const days = [null], prio = priorityRoute(cfg), scount = {}; members.forEach(m => { scount[m.id] = 0; });
+    const days = [null], scount = {}; members.forEach(m => { scount[m.id] = 0; });
     for (let d = 1; d <= dim; d++) {
       const offIds = cfg.people.filter(p => offSet[p.id].has(d)).map(p => p.id), runs = {}, mobile = [];
       for (const m of members) if (!offSet[m.id].has(d)) runs[m.route] = { pid: m.id, kind: 'self' };
       const need = [...members.filter(m => offSet[m.id].has(d)).map(m => m.route), ...vac];   // 需要有人代跑的線（休假組員的線＋沒有固定組員的線）
       let leaderRoute = '';
       if (need.length && !offSet[leader.id].has(d)) {
-        let pick = need.includes(prio) && prio ? prio : null;
-        if (!pick) { const lo = Math.min(...need.map(r => lcount[r])); const c = need.filter(r => lcount[r] === lo); pick = c[d % c.length]; }
+        const lo = Math.min(...need.map(r => lcount[r])), c = need.filter(r => lcount[r] === lo), pick = c[d % c.length];
         leaderRoute = pick; lcount[pick]++; runs[pick] = { pid: leader.id, kind: 'leader' };
       }
       for (const r of need) if (r !== leaderRoute) { mobile.push(r); runs[r] = { pid: 'mobile', kind: 'mobile' }; }
@@ -2399,11 +2400,6 @@ details.more>.help,details.more>.guide{margin-top:8px}
       for (const r of [...cfg.people.filter(p => p.role === 'member').map(m => m.route), ...(cfg.vacant || [])]) if (!pd.runs[r]) out.push(`${date(d)} ${r} 線沒有人跑。`);
       const L = cfg.people.find(p => p.role === 'leader'), lr = Object.keys(pd.runs).filter(r => pd.runs[r].pid === L.id);
       if (lr.length > 1 || (pd.off.includes(L.id) && lr.length)) out.push(`${date(d)} 組長跑了不該跑的線。`);
-      const PR = priorityRoute(cfg);
-      if (PR) {
-        const B = cfg.people.find(p => p.role === 'member' && p.route === PR);
-        if (B && pd.off.includes(B.id) && !pd.off.includes(L.id) && pd.runs[PR].pid !== L.id) out.push(`${date(d)} ${B.name}（${PR}）休假，但${L.name}沒有跑 ${PR} 線。`);
-      }
     }
     { const zero = []; for (let d = 1; d <= dim; d++) if (!plan[d].off.length) zero.push(d), plan[d].extra || out.push(`${date(d)} 沒人休，卻沒有機動組代跑、也沒有「多出」的組員。`);
       const zm = zeroMin(cfg, md, dim);
@@ -2517,7 +2513,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     md.runCap = res.runCap || 0; md.lowLeave = !!res.lowLeave; md.relaxed = (res.relaxed || []).map(r => ({ id: r.id, name: r.name, cap: r.cap }));
   }
 
-  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
+  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapLines, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = Small; else root.SmallCore = Small;
 })(typeof self !== 'undefined' ? self : this);
 </script>
@@ -2572,7 +2568,6 @@ details.more>.help,details.more>.guide{margin-top:8px}
     const m = md(), dim = dimOf(), h = Core.restHintForMonth(st.month);
     $('quota').max = dim; $('quota').value = m.quota.L;
     $('quotaHelp').textContent = h.official ? `${st.month} 行事曆：週末 ${h.weekendCount} 天＋國定假日／補假 ${h.holidayCount} 天＝預設 ${h.total} 天；全組每人都一樣。` : '這個年度沒有官方假日資料，預設 8 天；全組每人都一樣。';
-    $('ruleB').classList.toggle('hidden', !Small.priorityRoute(st.cfg));
     $('btnGen').disabled = st.busy;
     $('btnTap').setAttribute('aria-pressed', String(st.tap)); $('btnTap').textContent = '點格子設定指定休：' + (st.tap ? '開（點下面人員的格子）' : '關'); $('btnTap').classList.toggle('active', st.tap);
     const fs = st.cfg.people.map(p => [p.name, Core.uniqueDays(m.fixed && m.fixed[p.id], dim).length, Core.leaveDays(m, p.id).length]).filter(x => x[1]);
@@ -2654,7 +2649,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
         const lo = v.off[lead.id].has(d);
         foot = `<span class="lf">${lo ? '組長休假' : pl.leaderRoute ? `組長代 ${esc(pl.leaderRoute)} 線` : '組長本職'}</span>`;
         if (pl.mobile.length) foot += `<span class="mb">機動組：${pl.mobile.map(esc).join('、')}${manMob(pl) ? MT : ''}</span>`;
-        foot += `<span class="cdact"><button class="btn sm" type="button" data-swap-day="${d}">換線</button>${st.months[st.month].swaps && st.months[st.month].swaps[d] ? `<button class="btn sm" type="button" data-restore-day="${d}">還原隨機</button>` : ''}</span>`;
+        foot += `<span class="cdact">${pl.leaderRoute && pl.mobile.length ? `<button class="btn sm" type="button" data-swap-day="${d}">換線</button>` : ''}${st.months[st.month].swaps && st.months[st.month].swaps[d] ? `<button class="btn sm" type="button" data-restore-day="${d}">還原隨機</button>` : ''}</span>`;
       }
       h += `<article class="cd${d === todayD ? ' today' : ''}${dayInfo(d).we ? ' we' : ''}" aria-label="${mo}/${d}"><header class="cdh"><b class="dn">${d}<small class="wd2">（${WD[dayInfo(d).w]}）</small></b><span class="oc">休 ${offs.length} 人</span></header>
         <div class="offbox"><b>今日休假人員（${offs.length}）</b><span>${v.gen || offs.length ? (offs.length ? offs.map(p => esc(p.name)).join('、') : '今日沒人休') : '尚未排出休假'}</span></div>
@@ -2712,17 +2707,17 @@ details.more>.help,details.more>.guide{margin-top:8px}
     if (v.gen) notes += `<li>本月休假天數：${st.cfg.people.map(p => `${esc(p.name)} ${v.off[p.id].size} 天`).join('、')}</li>`;
     else notes += '<li>這個月還沒排班：請到下方按「隨機排假」。</li>';
     $('dvPeople').innerHTML = ppl; $('dvNotes').innerHTML = notes;
-    const sw = md().swaps || {}; $('dvActs').classList.toggle('hidden', !v.gen); $('dvRestore').classList.toggle('hidden', !sw[d]);
+    const sw = md().swaps || {}; $('dvActs').classList.toggle('hidden', !v.gen); { const pd0 = v.plan && v.plan[d]; $('dvSwap').classList.toggle('hidden', !(pd0 && pd0.leaderRoute && pd0.mobile.length)); } $('dvRestore').classList.toggle('hidden', !sw[d]);
     $('dvMore').open = st.dvOpen;
   }
   // ---------- 換線（手動覆蓋隨機結果） ----------
   const swSel = { day: 0 };
   function swapRunners(d) {
-    const pl = viewOf().plan[d], out = [];
-    for (const r of Object.keys(pl.runs)) { const pid = pl.runs[r].pid, p = st.cfg.people.find(x => x.id === pid); out.push({ route: r, label: p ? `${p.name}${p.role === 'leader' ? '（組長）' : ''}　跑 ${r} 線` : `機動組　跑 ${r} 線` }); }
+    const m = md(), out = [];
+    for (const x of Small.swapLines(st.cfg, m.off, dimOf(), m.swaps || {}, d)) { const p = st.cfg.people.find(q => q.id === x.pid); out.push({ route: x.route, label: p ? `${p.name}（組長）　跑 ${x.route} 線` : `機動組　跑 ${x.route} 線` }); }
     return out;
   }
-  // 第二條線的選項：不含第一條線；不能換的選項照樣列出，後面註明「不能換」，選了會在下面顯示原因
+  // 第二條線的選項：不含第一條線，只列「另一邊」（組長的線 ⇄ 機動組的線）；不能換的選項後面註明「不能換」，選了會在下面顯示原因
   function fillSwapB(keep) {
     const m = md(), d = swSel.day, a = $('swA').value, labels = {}; swapRunners(d).forEach(o => { labels[o.route] = o.label; });
     const ch = Small.swapChoices(st.cfg, m.off, dimOf(), m.swaps || {}, d, a);
@@ -2742,6 +2737,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   function openSwap(d) {
     const m = md(); if (!m.generated) { toast('先按「隨機排假」再換線'); return; }
     swSel.day = d; const opts = swapRunners(d), mo = st.month.split('-')[1];
+    if (!opts.length) { toast('這天沒有機動組代跑的線，不能換線'); return; }
     $('swH').textContent = `換線　${Number(mo)}/${d}（週${WD[dayInfo(d).w]}）`;
     $('swA').innerHTML = opts.map(o => `<option value="${esc(o.route)}">${esc(o.label)}</option>`).join(''); $('swA').selectedIndex = 0;
     fillSwapB('');
