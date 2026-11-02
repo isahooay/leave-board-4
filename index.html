@@ -266,7 +266,8 @@ details.more>.help,details.more>.guide{margin-top:8px}
 .swapdlg h3{margin:0;font-size:20px}
 .swapdlg p{margin:0;color:var(--muted);font-size:14px}
 .swapdlg .sw-pre{color:var(--ink);font-weight:700;min-height:1.4em}
-.swapdlg .sw-err{color:var(--red);font-weight:700;min-height:1.4em}
+.swapdlg .sw-err{color:var(--red);font-weight:700}
+.swapdlg .sw-err:not(:empty){border:2px solid var(--red);border-radius:10px;padding:8px 10px}
 .swapdlg .sw-acts{display:flex;flex-wrap:wrap;gap:8px}
 .dv-acts{display:none}
 .notefold[open]>summary{margin-bottom:6px}
@@ -2150,6 +2151,11 @@ details.more>.help,details.more>.guide{margin-top:8px}
     const next = JSON.parse(JSON.stringify(cleanSwaps(swaps, dim))); if (Object.keys(ov).length) next[day] = ov; else delete next[day];
     return { ok: true, swaps: next };
   }
+  // 第二個下拉選單：排除第一條線，每個選項都先試算能不能換，不能換的帶原因（讓畫面直接顯示）
+  function swapChoices(cfg, off, dim, swaps, day, first) {
+    const cur = dayPlans(cfg, off, dim, swaps)[day]; if (!cur) return [];
+    return Object.keys(cur.runs).filter(r => r !== first).map(r => { const t = trySwap(cfg, off, dim, swaps, day, first, r); return { route: r, pid: cur.runs[r].pid, ok: t.ok, reason: t.ok ? '' : t.reason }; });
+  }
   // 重新隨機排假之後：還成立的換線留著，不成立的丟掉，回傳丟掉的日子
   function reconcileSwaps(cfg, off, dim, swaps) {
     const base = dayPlans(cfg, off, dim), kept = {}, dropped = [], clean = cleanSwaps(swaps, dim);
@@ -2495,7 +2501,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     md.runCap = res.runCap || 0; md.lowLeave = !!res.lowLeave; md.relaxed = (res.relaxed || []).map(r => ({ id: r.id, name: r.name, cap: r.cap }));
   }
 
-  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
+  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapChoices, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = Small; else root.SmallCore = Small;
 })(typeof self !== 'undefined' ? self : this);
 </script>
@@ -2697,20 +2703,29 @@ details.more>.help,details.more>.guide{margin-top:8px}
     for (const r of Object.keys(pl.runs)) { const pid = pl.runs[r].pid, p = st.cfg.people.find(x => x.id === pid); out.push({ route: r, label: p ? `${p.name}${p.role === 'leader' ? '（組長）' : ''}　跑 ${r} 線` : `機動組　跑 ${r} 線` }); }
     return out;
   }
+  // 第二條線的選項：不含第一條線；不能換的選項照樣列出，後面註明「不能換」，選了會在下面顯示原因
+  function fillSwapB(keep) {
+    const m = md(), d = swSel.day, a = $('swA').value, labels = {}; swapRunners(d).forEach(o => { labels[o.route] = o.label; });
+    const ch = Small.swapChoices(st.cfg, m.off, dimOf(), m.swaps || {}, d, a);
+    $('swB').innerHTML = ch.map(c => `<option value="${esc(c.route)}">${esc(labels[c.route] + (c.ok ? '' : '　（不能換）'))}</option>`).join('');
+    const want = ch.find(c => c.route === keep && c.ok) || ch.find(c => c.ok) || ch.find(c => c.route === keep) || ch[0];
+    if (want) $('swB').value = want.route;
+  }
   function swapPreview() {
     const d = swSel.day, a = $('swA').value, b = $('swB').value, pre = $('swPre'), err = $('swErr'), ok = $('swOk');
+    if (!b) { pre.textContent = ''; err.textContent = '當天沒有可以對換的另一條線。'; ok.disabled = true; return; }
     const m = md(), res = Small.trySwap(st.cfg, m.off, dimOf(), m.swaps || {}, d, a, b);
     if (res.ok) {
       const pl = Small.dayPlans(st.cfg, m.off, dimOf(), res.swaps)[d], nm = r => { const pid = pl.runs[r].pid, p = st.cfg.people.find(x => x.id === pid); return p ? p.name : '機動組'; };
       pre.textContent = `換完：${nm(a)} 跑 ${a} 線、${nm(b)} 跑 ${b} 線。`; err.textContent = ''; ok.disabled = false;
-    } else { pre.textContent = ''; err.textContent = res.reason || '這樣不能換。'; ok.disabled = true; }
+    } else { pre.textContent = ''; err.textContent = '不能換：' + (res.reason || '這樣不成立。'); ok.disabled = true; }
   }
   function openSwap(d) {
     const m = md(); if (!m.generated) { toast('先按「隨機排假」再換線'); return; }
     swSel.day = d; const opts = swapRunners(d), mo = st.month.split('-')[1];
     $('swH').textContent = `換線　${Number(mo)}/${d}（週${WD[dayInfo(d).w]}）`;
-    const html = opts.map(o => `<option value="${esc(o.route)}">${esc(o.label)}</option>`).join('');
-    $('swA').innerHTML = html; $('swB').innerHTML = html; $('swA').selectedIndex = 0; $('swB').selectedIndex = opts.length > 1 ? 1 : 0;
+    $('swA').innerHTML = opts.map(o => `<option value="${esc(o.route)}">${esc(o.label)}</option>`).join(''); $('swA').selectedIndex = 0;
+    fillSwapB('');
     $('swRestore').classList.toggle('hidden', !(m.swaps && m.swaps[d]));
     swapPreview();
     const dlg = $('swapDlg'); if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
@@ -2910,7 +2925,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   $('dvSwap').addEventListener('click', () => openSwap(st.dvDay));
   $('dvRestore').addEventListener('click', () => restoreDay(st.dvDay));
   $('btnRestoreAll').addEventListener('click', restoreAll);
-  $('swA').addEventListener('change', swapPreview); $('swB').addEventListener('change', swapPreview);
+  $('swA').addEventListener('change', () => { fillSwapB($('swB').value); swapPreview(); }); $('swB').addEventListener('change', swapPreview);
   $('swOk').addEventListener('click', doSwap); $('swCancel').addEventListener('click', closeSwap);
   $('swRestore').addEventListener('click', () => { const d = swSel.day; closeSwap(); restoreDay(d); });
   $('calWrap').addEventListener('click', e => { const a = e.target.closest('[data-swap-day]'), b = e.target.closest('[data-restore-day]'); if (a) openSwap(Number(a.dataset.swapDay)); else if (b) restoreDay(Number(b.dataset.restoreDay)); });
