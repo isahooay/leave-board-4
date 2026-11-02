@@ -4,11 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>送餐小組排假表（單組版）</title>
+<meta name="color-scheme" content="dark light">
+<script>
+(function () {
+  var t = null;
+  try { t = window.localStorage.getItem('送餐小組排假表_theme'); } catch (e) { t = null; }
+  if (t !== 'dark' && t !== 'light') t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
 <style>
-:root{color-scheme:dark;--ink:#f1f0e9;--muted:#a8b5bd;--line:#34434b;--paper:#18252c;--bg:#101820;--gold:#ffcf62;--blue-soft:#27343a;--blue:#a7c8ff;--orange:#ffcf62;--orange-soft:#352f22;--red:#ff9386;--red-soft:#38292a;--green:#80d4b3;--green-soft:#20352f;--radius:14px}
+/* ===== 主題：所有顏色都走 CSS 變數；深色為預設，<html data-theme="light"> 切成淺色 ===== */
+:root{color-scheme:dark;--k-0f4a45:#0f4a45;--k-101820:#101820;--k-111c22:#111c22;--k-131d23:#131d23;--k-142027:#142027;--k-14403d:#14403d;--k-152128:#152128;--k-16222a:#16222a;--k-172027:#172027;--k-17242b:#17242b;--k-18252c:#18252c;--k-19272e:#19272e;--k-1a262d:#1a262d;--k-1b2930:#1b2930;--k-1b2a31:#1b2a31;--k-1b2f2a:#1b2f2a;--k-1c1a2e:#1c1a2e;--k-1c2931:#1c2931;--k-1d2a31:#1d2a31;--k-1f2b32:#1f2b32;--k-202d33:#202d33;--k-202e34:#202e34;--k-20323b:#20323b;--k-20352f:#20352f;--k-243139:#243139;--k-25323a:#25323a;--k-26353d:#26353d;--k-27343a:#27343a;--k-29373d:#29373d;--k-2a2140:#2a2140;--k-2a373e:#2a373e;--k-2b2a24:#2b2a24;--k-2b3b45:#2b3b45;--k-2c3d46:#2c3d46;--k-2c4a40:#2c4a40;--k-2f3f47:#2f3f47;--k-2fc9b4:#2fc9b4;--k-315749:#315749;--k-33274a:#33274a;--k-33434b:#33434b;--k-34434b:#34434b;--k-352f22:#352f22;--k-38292a:#38292a;--k-382f20:#382f20;--k-3a3023:#3a3023;--k-3b4a52:#3b4a52;--k-40515a:#40515a;--k-43515a:#43515a;--k-47607a:#47607a;--k-53666f:#53666f;--k-665a3e:#665a3e;--k-695638:#695638;--k-6b5f45:#6b5f45;--k-6b8190:#6b8190;--k-6f8089:#6f8089;--k-704744:#704744;--k-754844:#754844;--k-7ff5e0:#7ff5e0;--k-80d4b3:#80d4b3;--k-8a6bc2:#8a6bc2;--k-8fa0a8:#8fa0a8;--k-8fd0ff:#8fd0ff;--k-8fd4b8:#8fd4b8;--k-8fe9d8:#8fe9d8;--k-9c7840:#9c7840;--k-9ce4c8:#9ce4c8;--k-9fb0b8:#9fb0b8;--k-a7c8ff:#a7c8ff;--k-a8b5bd:#a8b5bd;--k-a99bc7:#a99bc7;--k-b9a679:#b9a679;--k-b9c8d0:#b9c8d0;--k-bfe3ff:#bfe3ff;--k-bff0cf:#bff0cf;--k-cdb78f:#cdb78f;--k-d6e6f2:#d6e6f2;--k-d8c391:#d8c391;--k-d9b866:#d9b866;--k-e2c8ff:#e2c8ff;--k-e9c99a:#e9c99a;--k-f0c777:#f0c777;--k-f1f0e9:#f1f0e9;--k-f3d48d:#f3d48d;--k-ff9386:#ff9386;--k-ffaaa0:#ffaaa0;--k-ffcf62:#ffcf62;--k-ffda80:#ffda80;--k-ffffff:#ffffff;--wash:rgba(255,255,255,.035);--focus:rgba(255,207,98,.42);--acc-off-bg:#2f4a66;--acc-off-fg:#e6f2ff;--acc-leave-bg:#4d3c18;--acc-leave-fg:#ffd980;--acc-mob-bg:#14504a;--acc-mob-fg:#a4f4e4}
+:root[data-theme="light"]{color-scheme:light;--k-0f4a45:#d5ecea;--k-101820:#e3eaf1;--k-111c22:#e2ebf1;--k-131d23:#e2eaef;--k-142027:#e0eaef;--k-14403d:#d7edeb;--k-152128:#e0e9ef;--k-16222a:#dfe8ee;--k-172027:#e1e8ed;--k-17242b:#dee8ee;--k-18252c:#dee8ed;--k-19272e:#dde7ed;--k-1a262d:#dee7ec;--k-1b2930:#dce6ec;--k-1b2a31:#dce7ec;--k-1b2f2a:#ddebe8;--k-1c1a2e:#dfddec;--k-1c2931:#dce5eb;--k-1d2a31:#dce5ea;--k-1f2b32:#dce4e9;--k-202d33:#dce5e9;--k-202e34:#dbe5e9;--k-20323b:#d7e3e9;--k-20352f:#dae9e5;--k-243139:#d9e2e7;--k-25323a:#d8e1e6;--k-26353d:#d7e1e6;--k-27343a:#d9e1e5;--k-29373d:#d7e0e4;--k-2a2140:#dbd5e9;--k-2a373e:#d7dfe4;--k-2b2a24:#e6e5e1;--k-2b3b45:#d3dde4;--k-2c3d46:#d3dee3;--k-2c4a40:#d1e4dd;--k-2f3f47:#d3dde2;--k-2fc9b4:#259d8d;--k-315749:#cbe2d9;--k-33274a:#d8d0e6;--k-33434b:#d1dbe0;--k-34434b:#d1dadf;--k-352f22:#e8e4db;--k-38292a:#e4dadb;--k-382f20:#e9e3d9;--k-3a3023:#e8e1d8;--k-3b4a52:#ced7dc;--k-40515a:#cbd4da;--k-43515a:#cbd3d8;--k-47607a:#bbc9d8;--k-53666f:#c1ccd1;--k-665a3e:#dbd4c4;--k-695638:#dfd4c2;--k-6b5f45:#d8d1c2;--k-6b8190:#53646f;--k-6f8089:#57646b;--k-704744:#d9c2c0;--k-754844:#d9c0bd;--k-7ff5e0:#0a826c;--k-80d4b3:#277355;--k-8a6bc2:#4c327a;--k-8fa0a8:#49575e;--k-8fd0ff:#004a80;--k-8fd4b8:#296b50;--k-8fe9d8:#177362;--k-9c7840:#b99255;--k-9ce4c8:#1d6a4c;--k-9fb0b8:#415158;--k-a7c8ff:#002c75;--k-a8b5bd:#3f4c53;--k-a99bc7:#42355f;--k-b9a679:#6f603a;--k-b9c8d0:#34454e;--k-bfe3ff:#003c6b;--k-bff0cf:#165c2c;--k-cdb78f:#68542f;--k-d6e6f2:#19374e;--k-d8c391:#6b5726;--k-d9b866:#836721;--k-e2c8ff:#300067;--k-e9c99a:#6d4b18;--k-f0c777:#835c0e;--k-f1f0e9:#16202a;--k-f3d48d:#7a590d;--k-ff9386:#840e00;--k-ffaaa0:#790d00;--k-ffcf62:#946700;--k-ffda80:#876000;--k-ffffff:#0b1218;--wash:rgba(0,0,0,.04);--focus:rgba(112,78,0,.55);--acc-off-bg:#cfe1f7;--acc-off-fg:#0b2a4d;--acc-leave-bg:#fbe2a0;--acc-leave-fg:#4a3200;--acc-mob-bg:#bdeee3;--acc-mob-fg:#05453a}
+:root{--ink:var(--k-f1f0e9);--muted:var(--k-a8b5bd);--line:var(--k-34434b);--paper:var(--k-18252c);--bg:var(--k-101820);--gold:var(--k-ffcf62);--blue-soft:var(--k-27343a);--blue:var(--k-a7c8ff);--orange:var(--k-ffcf62);--orange-soft:var(--k-352f22);--red:var(--k-ff9386);--red-soft:var(--k-38292a);--green:var(--k-80d4b3);--green-soft:var(--k-20352f);--radius:14px}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:radial-gradient(ellipse at 50% 0%,#20323b 0%,var(--bg) 58%) fixed;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.45}
+body{margin:0;background:radial-gradient(ellipse at 50% 0%,var(--k-20323b) 0%,var(--bg) 58%) fixed;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.45}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 .app{max-width:1480px;margin:auto;padding:16px 16px 60px}
@@ -16,68 +28,68 @@ button{cursor:pointer}
 h1{font-size:clamp(22px,4vw,32px);margin:0 0 4px}
 h2{font-size:17px;margin:0}
 .subtitle{margin:0;color:var(--muted);font-size:14px}
-.pill{white-space:nowrap;background:var(--green-soft);color:var(--green);border:1px solid #315749;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}
-.pill.bad{background:var(--red-soft);color:var(--red);border-color:#704744}
-.panel{background:linear-gradient(145deg,#19272e,#152128);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 12px 30px rgba(0,0,0,.18);padding:14px;margin-bottom:14px}
+.pill{white-space:nowrap;background:var(--green-soft);color:var(--green);border:1px solid var(--k-315749);border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}
+.pill.bad{background:var(--red-soft);color:var(--red);border-color:var(--k-704744)}
+.panel{background:linear-gradient(145deg,var(--k-19272e),var(--k-152128));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 12px 30px rgba(0,0,0,.18);padding:14px;margin-bottom:14px}
 .panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 label.f{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px}
-input[type=text],input[type=number],input[type=month],select{width:100%;border:1px solid #40515a;background:#111c22;border-radius:10px;padding:9px 10px;color:var(--ink);min-height:40px}
-input:focus,button:focus-visible,select:focus{outline:3px solid rgba(255,207,98,.42);outline-offset:1px}
-.btn{border:1px solid #43515a;background:#1d2a31;color:var(--ink);border-radius:10px;padding:9px 13px;font-weight:750;min-height:42px}
-.btn:hover{background:#29373d}
-.btn.primary{background:var(--gold);border-color:var(--gold);color:#172027}
-.btn.primary:hover{background:#ffda80}
-.btn.danger{color:var(--red);border-color:#754844}
-.btn.active{background:#382f20;border-color:#9c7840;color:var(--gold)}
+input[type=text],input[type=number],input[type=month],select{width:100%;border:1px solid var(--k-40515a);background:var(--k-111c22);border-radius:10px;padding:9px 10px;color:var(--ink);min-height:40px}
+input:focus,button:focus-visible,select:focus{outline:3px solid var(--focus);outline-offset:1px}
+.btn{border:1px solid var(--k-43515a);background:var(--k-1d2a31);color:var(--ink);border-radius:10px;padding:9px 13px;font-weight:750;min-height:42px}
+.btn:hover{background:var(--k-29373d)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--k-172027)}
+.btn.primary:hover{background:var(--k-ffda80)}
+.btn.danger{color:var(--red);border-color:var(--k-754844)}
+.btn.active{background:var(--k-382f20);border-color:var(--k-9c7840);color:var(--gold)}
 .btn.sm{padding:5px 9px;min-height:32px;font-size:13px}
 .btn[disabled]{opacity:.5;cursor:wait}
 .row{display:flex;flex-wrap:wrap;gap:9px;align-items:end}
 .row>.grow{flex:1 1 150px}
-.tabs{display:inline-flex;border:1px solid #43515a;border-radius:10px;overflow:hidden}
-.tabs button{border:0;background:#1d2a31;padding:9px 14px;min-height:42px;font-weight:750}
-.tabs button+button{border-left:1px solid #43515a}
-.tabs button.on{background:var(--gold);color:#172027}
-.status{margin-top:12px;border-radius:12px;padding:11px 13px;border:1px solid #3b4a52;background:#1b2930;font-weight:700;font-size:14px}
-.status.ok{color:#9ce4c8;background:var(--green-soft);border-color:#315749}
-.status.warn{color:var(--gold);background:var(--orange-soft);border-color:#695638}
-.status.error{color:#ffaaa0;background:var(--red-soft);border-color:#704744}
+.tabs{display:inline-flex;border:1px solid var(--k-43515a);border-radius:10px;overflow:hidden}
+.tabs button{border:0;background:var(--k-1d2a31);padding:9px 14px;min-height:42px;font-weight:750}
+.tabs button+button{border-left:1px solid var(--k-43515a)}
+.tabs button.on{background:var(--gold);color:var(--k-172027)}
+.status{margin-top:12px;border-radius:12px;padding:11px 13px;border:1px solid var(--k-3b4a52);background:var(--k-1b2930);font-weight:700;font-size:14px}
+.status.ok{color:var(--k-9ce4c8);background:var(--green-soft);border-color:var(--k-315749)}
+.status.warn{color:var(--gold);background:var(--orange-soft);border-color:var(--k-695638)}
+.status.error{color:var(--k-ffaaa0);background:var(--red-soft);border-color:var(--k-704744)}
 .status ul{margin:6px 0 0;padding-left:20px;font-weight:500}
 .status li+li{margin-top:4px}
 .status .btn{margin-top:8px}
-.hint{margin-top:9px;padding:9px 11px;border:1px solid #665a3e;border-left:4px solid var(--gold);border-radius:10px;background:#202e34;color:#f3d48d;font-size:13px;font-weight:700}
+.hint{margin-top:9px;padding:9px 11px;border:1px solid var(--k-665a3e);border-left:4px solid var(--gold);border-radius:10px;background:var(--k-202e34);color:var(--k-f3d48d);font-size:13px;font-weight:700}
 .hint small{display:block;color:var(--muted);font-weight:500;margin-top:2px}
 .help{font-size:12px;color:var(--muted);margin-top:4px}
 .legend{display:flex;flex-wrap:wrap;gap:7px;font-size:12px}
-.tag{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;border:1px solid var(--line);background:#1d2a31;font-weight:700}
-.tag.fixed,.chip.fixed{color:#ffaaa0;background:var(--red-soft);border-color:#754844}
-.tag.leave,.chip.leave{color:var(--gold);background:var(--orange-soft);border-color:#9c7840}
-.tag.random,.chip.random{color:var(--blue);background:#25323a;border-color:#47607a}
-.tag.work{color:#9ce4c8;background:var(--green-soft)}
-.tag.extra,.chip.extra{color:#e2c8ff;background:#33274a;border-color:#8a6bc2}
-.note-panel{border:2px solid #8a6bc2;background:linear-gradient(145deg,#2a2140,#1c1a2e)}
-.note-panel h2{color:#e2c8ff}
+.tag{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;border:1px solid var(--line);background:var(--k-1d2a31);font-weight:700}
+.tag.fixed,.chip.fixed{color:var(--k-ffaaa0);background:var(--red-soft);border-color:var(--k-754844)}
+.tag.leave,.chip.leave{color:var(--gold);background:var(--orange-soft);border-color:var(--k-9c7840)}
+.tag.random,.chip.random{color:var(--blue);background:var(--k-25323a);border-color:var(--k-47607a)}
+.tag.work{color:var(--k-9ce4c8);background:var(--green-soft)}
+.tag.extra,.chip.extra{color:var(--k-e2c8ff);background:var(--k-33274a);border-color:var(--k-8a6bc2)}
+.note-panel{border:2px solid var(--k-8a6bc2);background:linear-gradient(145deg,var(--k-2a2140),var(--k-1c1a2e))}
+.note-panel h2{color:var(--k-e2c8ff)}
 .note-panel ul{margin:8px 0 0;padding-left:20px;font-size:15px;line-height:1.65}
 .note-panel li+li{margin-top:4px}
-.note-panel li.big{font-size:16px;font-weight:800;color:#fff}
-.note-panel li.tip{color:#f3d48d}
-.note-panel li.fair{color:#bff0cf}
-.note-panel li.dist{color:#bfe3ff}
-.note-panel .cap{margin-top:10px;padding:8px 10px;border-radius:10px;background:#17242b;border:1px solid var(--line);font-size:14px}
-.note-panel .cap.warn{border-color:#9c7840;background:var(--orange-soft);color:var(--gold)}
-.matrix td.cell.extra{background:#33274a;color:#e2c8ff}
-.matrix td.cell.frun{color:#b9c8d0;font-size:11px}
-.matrix td.cell.frun.flt{color:#8fd0ff}
-.matrix td.cell.frun.lead{color:#e9c99a;background:#2b2a24}
-.pc-c.frun.lead{color:#e9c99a;background:#2b2a24}
-.pc-c.frun.flt{color:#8fd0ff}
-.tag.lead{color:#e9c99a;background:#2b2a24;border:1px solid #6b5f45}
-.matrix td.cell.frun.sup{background:#0f4a45;color:#7ff5e0;box-shadow:inset 0 0 0 1px #2fc9b4}
-.pc-c.frun{color:#b9c8d0}
-.pc-c.frun.sup{background:#0f4a45;color:#7ff5e0;border-color:#2fc9b4}
-.tag.sup{background:#0f4a45;color:#7ff5e0;border:1px solid #2fc9b4}
-.tag.frun{color:#b9c8d0}
+.note-panel li.big{font-size:16px;font-weight:800;color:var(--k-ffffff)}
+.note-panel li.tip{color:var(--k-f3d48d)}
+.note-panel li.fair{color:var(--k-bff0cf)}
+.note-panel li.dist{color:var(--k-bfe3ff)}
+.note-panel .cap{margin-top:10px;padding:8px 10px;border-radius:10px;background:var(--k-17242b);border:1px solid var(--line);font-size:14px}
+.note-panel .cap.warn{border-color:var(--k-9c7840);background:var(--orange-soft);color:var(--gold)}
+.matrix td.cell.extra{background:var(--k-33274a);color:var(--k-e2c8ff)}
+.matrix td.cell.frun{color:var(--k-b9c8d0);font-size:11px}
+.matrix td.cell.frun.flt{color:var(--k-8fd0ff)}
+.matrix td.cell.frun.lead{color:var(--k-e9c99a);background:var(--k-2b2a24)}
+.pc-c.frun.lead{color:var(--k-e9c99a);background:var(--k-2b2a24)}
+.pc-c.frun.flt{color:var(--k-8fd0ff)}
+.tag.lead{color:var(--k-e9c99a);background:var(--k-2b2a24);border:1px solid var(--k-6b5f45)}
+.matrix td.cell.frun.sup{background:var(--k-0f4a45);color:var(--k-7ff5e0);box-shadow:inset 0 0 0 1px var(--k-2fc9b4)}
+.pc-c.frun{color:var(--k-b9c8d0)}
+.pc-c.frun.sup{background:var(--k-0f4a45);color:var(--k-7ff5e0);border-color:var(--k-2fc9b4)}
+.tag.sup{background:var(--k-0f4a45);color:var(--k-7ff5e0);border:1px solid var(--k-2fc9b4)}
+.tag.frun{color:var(--k-b9c8d0)}
 .matrix td.cell.run5{box-shadow:inset 0 -3px 0 var(--gold)}
-details.fold{border:1px solid var(--line);border-radius:12px;padding:0 12px;margin-bottom:10px;background:#16222a}
+details.fold{border:1px solid var(--line);border-radius:12px;padding:0 12px;margin-bottom:10px;background:var(--k-16222a)}
 details.fold>summary{cursor:pointer;padding:12px 0;font-weight:800;list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.fold>summary::-webkit-details-marker{display:none}
 details.fold>summary::after{content:"＋";color:var(--gold)}
@@ -90,78 +102,276 @@ details.fold[open]{padding-bottom:12px}
 .tbl td.num input{width:70px}
 .scroll{overflow:auto;-webkit-overflow-scrolling:touch}
 .matrix{border-collapse:separate;border-spacing:0;font-size:12px}
-.matrix th,.matrix td{border-bottom:1px solid #26353d;border-right:1px solid #26353d;text-align:center;padding:0;min-width:30px;height:34px}
-.matrix th{background:#202d33;font-weight:800;position:sticky;top:0;z-index:2}
+.matrix th,.matrix td{border-bottom:1px solid var(--k-26353d);border-right:1px solid var(--k-26353d);text-align:center;padding:0;min-width:30px;height:34px}
+.matrix th{background:var(--k-202d33);font-weight:800;position:sticky;top:0;z-index:2}
 .matrix th.we{color:var(--gold)}
 .matrix .gsep .gl{position:sticky;left:8px;display:inline-block}
-.matrix td.nm,.matrix th.nm{position:sticky;left:0;z-index:3;background:#1b2a31;text-align:left;padding:0 8px;min-width:96px;white-space:nowrap;font-weight:800}
-.matrix th.nm{z-index:4;background:#202d33}
+.matrix td.nm,.matrix th.nm{position:sticky;left:0;z-index:3;background:var(--k-1b2a31);text-align:left;padding:0 8px;min-width:96px;white-space:nowrap;font-weight:800}
+.matrix th.nm{z-index:4;background:var(--k-202d33)}
 .matrix td.cell{cursor:pointer;font-weight:900}
 .matrix td.cell.fixed{background:var(--red-soft);color:var(--red)}
 .matrix td.cell.leave{background:var(--orange-soft);color:var(--gold)}
-.matrix td.cell.random{background:#25323a;color:var(--blue)}
-.site-foot{text-align:center;color:#8fa0a8;font-size:13px;padding:18px 12px 28px;letter-spacing:.08em}
+.matrix td.cell.random{background:var(--k-25323a);color:var(--blue)}
+.site-foot{text-align:center;color:var(--k-8fa0a8);font-size:13px;padding:18px 12px 28px;letter-spacing:.08em}
 .matrix td.tot{min-width:58px;color:var(--muted);padding:0 6px}
-.matrix tr.gsep td{background:#142027;color:var(--muted);text-align:left;padding:2px 8px;height:22px;font-weight:800;position:static}
+.matrix tr.gsep td{background:var(--k-142027);color:var(--muted);text-align:left;padding:2px 8px;height:22px;font-weight:800;position:static}
 .hidden{display:none!important}
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#ffcf62;color:#172027;font-weight:800;border-radius:12px;padding:10px 16px;z-index:80;max-width:90vw}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--k-ffcf62);color:var(--k-172027);font-weight:800;border-radius:12px;padding:10px 16px;z-index:80;max-width:90vw}
 .wd{display:none;font-size:13px;font-weight:700;color:var(--muted);margin-left:4px}
 .pcards{display:none;gap:10px}
-.pcard{border:1px solid var(--line);border-radius:12px;padding:10px;background:#17242b}
+.pcard{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--k-17242b)}
 .pc-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .pc-h b{font-size:16px}.pc-s{font-size:12px;color:var(--muted);font-weight:700}
 .pc-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .pc-w{text-align:center;font-size:11px;color:var(--muted);font-weight:800}.pc-w.we{color:var(--gold)}
-.pc-c{border:1px solid #2f3f47;background:#1b2a31;border-radius:8px;min-height:44px;padding:2px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--muted);line-height:1.2}
+.pc-c{border:1px solid var(--k-2f3f47);background:var(--k-1b2a31);border-radius:8px;min-height:44px;padding:2px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--muted);line-height:1.2}
 .pc-c b{font-size:14px;color:var(--ink)}
 .pc-c.blank{visibility:hidden}
-.pc-c.fixed{background:var(--red-soft);border-color:#754844;color:var(--red)}
-.pc-c.leave{background:var(--orange-soft);border-color:#9c7840;color:var(--gold)}
-.pc-c.random{background:#25323a;border-color:#47607a;color:var(--blue)}
-.pc-c.extra{background:#33274a;border-color:#8a6bc2;color:#e2c8ff}
+.pc-c.fixed{background:var(--red-soft);border-color:var(--k-754844);color:var(--red)}
+.pc-c.leave{background:var(--orange-soft);border-color:var(--k-9c7840);color:var(--gold)}
+.pc-c.random{background:var(--k-25323a);border-color:var(--k-47607a);color:var(--blue)}
+.pc-c.extra{background:var(--k-33274a);border-color:var(--k-8a6bc2);color:var(--k-e2c8ff)}
 .pc-c.run5{box-shadow:inset 0 -3px 0 var(--gold)}
 .pc-c.fixed b,.pc-c.leave b,.pc-c.random b,.pc-c.extra b{color:inherit}
+
+/* ===== 視覺簡化（calm）：少色、少框、字大一點 ===== */
+:root{--line:var(--k-2a373e)}
+body{font-size:16px}
+.panel{background:var(--k-16222a);border:1px solid var(--k-243139);box-shadow:none}
+.pill{background:transparent;border-color:var(--k-2c4a40);font-weight:600}
+input[type=text],input[type=number],input[type=month],select{border-color:var(--k-33434b)}
+.btn{border-color:var(--k-33434b);background:var(--k-1a262d)}
+details.fold{border:0;background:var(--k-16222a);border-radius:12px}
+details.fold>summary::after{color:var(--muted)}
+details.more{margin:6px 0 10px}
+details.more>summary{cursor:pointer;display:inline-block;list-style:none;color:var(--muted);font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--k-1c2931)}
+details.more>summary::-webkit-details-marker{display:none}
+details.more[open]>summary{color:var(--ink)}
+details.more>.help,details.more>.guide{margin-top:8px}
+.panel-title h2{font-weight:800}
+/* 圖例：只有三個顏色 */
+.legend{font-size:13px;gap:8px}
+.tag{border:0;font-weight:700;padding:4px 11px}
+.tag small{font-size:11px;font-weight:600;opacity:.8}
+.tag.off{background:var(--k-2b3b45);color:var(--k-d6e6f2)}
+.tag.leave{background:var(--k-3a3023);color:var(--k-f0c777)}
+.tag.sup{background:var(--k-14403d);color:var(--k-8fe9d8);border:0}
+/* 表格 */
+.matrix{font-size:14px}
+.matrix th,.matrix td{border-right:0;border-bottom:1px solid var(--k-1f2b32);min-width:34px;height:38px}
+.matrix th{background:var(--k-1a262d);font-weight:700;color:var(--muted)}
+.matrix th.we{color:var(--k-b9a679)}
+.matrix td.nm,.matrix th.nm{background:var(--k-16222a);font-weight:700}
+.matrix th.nm{background:var(--k-1a262d)}
+.matrix td.tot{color:var(--k-8fa0a8)}
+.matrix td.cell{font-weight:600}
+.matrix td.cell.we{background:var(--wash)}
+.matrix td.cell.off{background:var(--k-2b3b45);color:var(--k-d6e6f2)}
+.matrix td.cell.leave{background:var(--k-3a3023);color:var(--k-f0c777)}
+.matrix td.cell.frun{background:transparent;color:var(--k-6f8089);font-size:13px;font-weight:500}
+.matrix td.cell.frun.we{background:var(--wash)}
+.matrix td.cell.frun.lead{background:transparent;color:var(--k-cdb78f);font-weight:600}
+.matrix td.cell.frun.lead.we{background:var(--wash)}
+.matrix td.cell.frun.sup{background:var(--k-14403d);color:var(--k-8fe9d8);box-shadow:none;font-weight:600}
+.matrix td.cell.extra{background:transparent;color:var(--k-a99bc7);font-weight:500}
+.matrix td.cell.extra.we{background:var(--wash)}
+.off.fixed,.fixed{text-decoration:underline dotted;text-underline-offset:4px;text-decoration-thickness:2px}
+.matrix td.cell.tap,.pc-c.tap{outline:1px dashed var(--k-53666f)}
+/* 手機月曆卡 */
+.pcard{border:0;background:var(--k-16222a)}
+.pc-c{border:0;background:transparent;font-size:12px;font-weight:600}
+.pc-c.we{background:var(--wash)}
+.pc-c b{font-size:14px;font-weight:600;color:var(--k-9fb0b8)}
+.pc-w.we{color:var(--k-b9a679)}
+.pc-c.off{background:var(--k-2b3b45);color:var(--k-d6e6f2)}
+.pc-c.leave{background:var(--k-3a3023);color:var(--k-f0c777)}
+.pc-c.frun{background:transparent;color:var(--k-6f8089);font-weight:500}
+.pc-c.frun.lead{background:transparent;color:var(--k-cdb78f)}
+.pc-c.frun.sup{background:var(--k-14403d);color:var(--k-8fe9d8);border:0}
+.pc-c.extra{background:transparent;color:var(--k-a99bc7)}
+.pc-c.off b,.pc-c.leave b,.pc-c.sup b{color:inherit}
+.pc-c.fixed,.pc-c.leave{border:0}
+/* 備註：不再用粗框 */
+.note-panel{border:1px solid var(--k-243139);background:var(--k-16222a)}
+.note-panel h2{color:var(--ink)}
+.note-panel li.big{color:var(--ink)}
+.note-panel li.tip{color:var(--k-d8c391)}
+.note-panel .cap{border:0;background:var(--k-1a262d)}
+.status{border:0;background:var(--k-1a262d)}
+.status.ok{background:var(--k-1b2f2a)}
+.dbtn{border-color:var(--k-33434b)}
+.st.off.fixed{text-decoration:underline dotted;text-underline-offset:4px;text-decoration-thickness:2px}
 .matrix td.cell{cursor:default}
 .matrix td.cell.frun{font-weight:800}
 .row.top{align-items:end}
 .row .fixw{flex:0 0 150px}
 .dgrid{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 12px}
-.dbtn{min-width:38px;min-height:38px;padding:2px 4px;border:1px solid #43515a;background:#1d2a31;border-radius:8px;font-weight:800;font-size:13px;line-height:1.1}
+.dbtn{min-width:38px;min-height:38px;padding:2px 4px;border:1px solid var(--k-43515a);background:var(--k-1d2a31);border-radius:8px;font-weight:800;font-size:13px;line-height:1.1}
 .dbtn small{display:block;font-size:10px;color:var(--muted);font-weight:600}
 .dbtn.we{color:var(--gold)}
-.dbtn[aria-pressed="true"]{background:var(--red-soft);border-color:#754844;color:var(--red)}
-.dbtn[aria-pressed="true"] small{color:var(--red)}
+.dbtn[aria-pressed="true"]{background:var(--k-2b3b45);border-color:var(--k-53666f);color:var(--k-d6e6f2);text-decoration:underline dotted;text-underline-offset:4px}
+.dbtn[aria-pressed="true"] small{color:var(--k-9fb0b8);text-decoration:none}
 .pname{margin:10px 0 0;font-weight:800;font-size:14px}
 .pname span{color:var(--muted);font-weight:600;font-size:12px}
 .rangebar{display:flex;flex-wrap:wrap;gap:8px;align-items:end;border-top:1px dashed var(--line);padding-top:10px}
 .rangebar .fixw{flex:0 0 120px}
-.legend{margin-top:10px}
-.matrix td.cell.tap,.pc-c.tap{cursor:pointer;outline:1px dashed #6b8190;outline-offset:-3px}
-.matrix td.cell.tap:hover,.pc-c.tap:hover{background:#2c3d46}
+.legend{margin-top:0}
+.matrix td.cell.tap,.pc-c.tap{cursor:pointer;outline:1px dashed var(--k-6b8190);outline-offset:-3px}
+.matrix td.cell.tap:hover,.pc-c.tap:hover{background:var(--k-2c3d46)}
 .fixsum{margin:0 0 8px;font-weight:700;color:var(--gold);font-size:14px}
 .tapbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
 .cell-sum{font-weight:700}
 .guide{margin:0;padding-left:20px;font-size:13px;color:var(--muted)}
 .guide li+li{margin-top:3px}
 .mobile-only{display:none}
+.calwrap{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--k-243139);border:1px solid var(--k-243139);border-radius:12px;overflow:hidden}
+.ch{background:var(--k-1a262d);text-align:center;font-weight:700;padding:9px 4px;color:var(--ink);font-size:14px}
+.ch.we{color:var(--k-d9b866)}
+.cd{background:var(--k-16222a);padding:10px 9px 9px;min-width:0}
+.cd.blank{background:var(--k-131d23)}
+.cd.today{outline:2px solid var(--k-d9b866);outline-offset:-2px}
+.cdh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.dn{font-size:18px;font-weight:700}
+.wd2{display:none;font-size:13px;font-weight:600;color:var(--muted)}
+.oc{font-size:12px;color:var(--muted)}
+.offbox{border:1px solid var(--k-2a373e);border-radius:10px;padding:6px 8px;margin-bottom:6px;font-size:12px;line-height:1.4}
+.offbox b{display:block;font-size:12px;font-weight:700;margin-bottom:2px}
+.offbox span{color:var(--muted)}
+.cr{display:flex;justify-content:space-between;gap:6px;align-items:center;padding:3px 2px;font-size:13px}
+.cn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.st{flex:none;font-size:12px}
+.st.mute{color:var(--k-6f8089)}
+.st.off,.st.leave,.st.sup{border-radius:6px;padding:1px 9px;font-weight:700}
+.st.off{background:var(--k-2b3b45);color:var(--k-d6e6f2)}
+.st.leave{background:var(--k-3a3023);color:var(--k-f0c777)}
+.st.lead{color:var(--k-cdb78f)}
+.st.extra{color:var(--k-a99bc7)}
+.cr.tap{cursor:pointer;outline:1px dashed var(--k-53666f);outline-offset:-1px;border-radius:6px}
+.cr.tap:hover{background:var(--k-2c3d46)}
+.cdf{margin-top:6px;padding-top:6px;border-top:1px solid var(--k-243139);font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-height:26px}
+.lf{color:var(--k-8fd4b8);font-weight:700}
+.mb{background:var(--k-14403d);color:var(--k-8fe9d8);border-radius:6px;padding:1px 8px;font-weight:700}
 .statline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hero-side{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+.btn.theme{white-space:nowrap}
+.dayview{display:none}
+.notefold>summary{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;list-style:none}
+.notefold>summary::-webkit-details-marker{display:none}
+.notefold>summary h2{margin:0}
+.mtag{display:inline-block;font-size:10px;font-weight:700;line-height:1.3;border:1px solid var(--ink);color:var(--ink);border-radius:5px;padding:0 4px;margin-left:3px;vertical-align:middle;white-space:nowrap}
+.cdact{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.swapdlg{border:2px solid var(--k-53666f);border-radius:16px;background:var(--paper);color:var(--ink);padding:0;width:min(440px,92vw);max-width:92vw}
+.swapdlg::backdrop{background:rgba(0,0,0,.55)}
+.swapdlg form{margin:0;padding:16px 16px 14px;display:grid;gap:10px}
+.swapdlg h3{margin:0;font-size:20px}
+.swapdlg p{margin:0;color:var(--muted);font-size:14px}
+.swapdlg .sw-pre{color:var(--ink);font-weight:700;min-height:1.4em}
+.swapdlg .sw-err{color:var(--red);font-weight:700;min-height:1.4em}
+.swapdlg .sw-acts{display:flex;flex-wrap:wrap;gap:8px}
+.dv-acts{display:none}
+.notefold[open]>summary{margin-bottom:6px}
+@media (min-width:769px){
+  .notefold>summary{cursor:default}
+}
 @media (max-width:768px){
-  .app{padding:12px 10px 50px}
-  .hero{flex-direction:column;gap:6px}
+  body{font-size:17px;line-height:1.55}
+  .app{padding:12px 10px 50px;max-width:100%}
+  .hero{flex-direction:column;gap:8px}
+  .hero-side{justify-content:flex-start}
+  h1{font-size:26px}
+  h2{font-size:20px}
+  .subtitle{font-size:16px}
+  .pill{font-size:15px}
+  main{display:flex;flex-direction:column;min-width:0}
+  .board-panel{order:-1;display:flex;flex-direction:column}
+  .board-panel>.panel-title{order:-2}
+  .board-panel>.dayview{order:-1;margin-bottom:12px}
   .row>.grow,.row .fixw{flex:1 1 100%}
-  .btn{width:100%}
-  .btn.sm{width:auto}
+  label.f{font-size:16px}
+  .help,.guide{font-size:16px}
+  input[type=text],input[type=number],input[type=month],input[type=date],select{font-size:17px;min-height:48px}
+  .btn{width:100%;font-size:17px;min-height:50px}
+  .btn.sm{width:auto;font-size:16px;min-height:46px}
+  .tabs button{font-size:17px;min-height:48px}
+  .legend{font-size:15px}
+  .tag{font-size:15px}
+  .tag small{font-size:13px}
+  .status{font-size:16px}
+  .hint,.fixsum,.cell-sum{font-size:16px}
+  .pname{font-size:17px}.pname span{font-size:15px}
+  .dbtn{min-width:44px;min-height:48px;font-size:16px}.dbtn small{font-size:12px}
+  details.more>summary{font-size:16px;padding:6px 14px}
+  details.fold>summary{font-size:18px}
+  .note-panel ul{font-size:17px}
+  .note-panel li.big{font-size:18px}
+  .note-panel .cap{font-size:16px}
   .scroll{display:none}
+  .calwrap{display:none}
   .pcards{display:grid;grid-template-columns:1fr}
+  .pc-h b{font-size:19px}.pc-s{font-size:15px}
+  .pc-w{font-size:14px}.pc-c{font-size:14px;min-height:50px}.pc-c b{font-size:17px}
   .wd{display:inline}
+  .tbl{font-size:17px}
   .tbl thead{display:none}
   .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
-  .tbl tr{display:grid;grid-template-columns:1fr 1fr;gap:6px;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px}
+  .tbl tr{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px}
   .tbl td{padding:0}
-  .tbl td::before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);font-weight:700}
+  .tbl td::before{content:attr(data-label);display:block;font-size:14px;color:var(--muted);font-weight:700}
   .tbl td.num input{width:100%}
   .tbl td.wide{grid-column:1 / -1}
+  .tbl input,.tbl select{min-height:48px;font-size:17px}
   .mobile-only{display:block}
+  .toast{font-size:17px}
+  .site-foot{font-size:15px}
+  /* 手機：一天一頁 */
+  .dayview{display:block;min-width:0}
+  .dayview.hidden{display:none!important}
+  .dv-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dv-nav .btn{min-height:64px;font-size:22px;font-weight:800;border-radius:14px;border:2px solid var(--k-53666f)}
+  .dv-nav .btn[disabled]{opacity:.4;cursor:not-allowed}
+  .dv-date{margin:14px 0 8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px}
+  .dv-date h3{margin:0;font-size:30px;font-weight:800;line-height:1.2}
+  .dv-today{font-size:16px;font-weight:700;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:1px 10px}
+  .dv-jump{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:end;margin-bottom:14px}
+  .dv-jump .btn{width:auto;min-width:110px}
+  .dv-jump label.f{margin-bottom:2px}
+  .dv-off{border:2px solid var(--k-47607a);border-radius:16px;padding:14px 16px;margin-bottom:12px;background:var(--k-1b2930)}
+  .dv-off h4{margin:0 0 6px;font-size:17px;font-weight:700;color:var(--muted)}
+  .dv-offlist{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+  .dv-offn{font-size:34px;font-weight:800;line-height:1.25;border-radius:12px;padding:2px 14px}
+  .dv-offn.off{background:var(--acc-off-bg);color:var(--acc-off-fg)}
+  .dv-offn.leave{background:var(--acc-leave-bg);color:var(--acc-leave-fg)}
+  .dv-offn small{font-size:17px;font-weight:700;margin-left:6px}
+  .dv-none{margin:0;font-size:26px;font-weight:700;color:var(--muted)}
+  .dv-people{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:8px}
+  .dv-p{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--k-16222a);min-height:64px}
+  .dv-n{font-size:26px;font-weight:800;min-width:0;overflow-wrap:anywhere}
+  .dv-n small{display:block;font-size:16px;font-weight:600;color:var(--muted)}
+  .dv-s{flex:none;font-size:26px;font-weight:800;border-radius:12px;padding:4px 14px;min-width:84px;text-align:center;color:var(--ink);border:2px solid var(--k-53666f)}
+  .dv-s.mute{color:var(--muted);border-color:var(--line)}
+  .dv-s.off{background:var(--acc-off-bg);color:var(--acc-off-fg);border-color:var(--acc-off-bg)}
+  .dv-s.leave{background:var(--acc-leave-bg);color:var(--acc-leave-fg);border-color:var(--acc-leave-bg)}
+  .dv-s.mob{background:var(--acc-mob-bg);color:var(--acc-mob-fg);border-color:var(--acc-mob-bg)}
+  .dv-s.fixed{text-decoration:underline dotted;text-underline-offset:6px;text-decoration-thickness:2px}
+  .dv-p.tap{cursor:pointer;outline:2px dashed var(--k-6b8190);outline-offset:-2px}
+  .dv-more{margin:0 0 4px;border:1px solid var(--line);border-radius:14px;background:var(--k-16222a)}
+  .dv-more>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:19px;font-weight:700;padding:14px 16px;min-height:56px}
+  .dv-more>summary::-webkit-details-marker{display:none}
+  .dv-more>summary::after{content:"＋";color:var(--muted);font-size:22px}
+  .dv-more[open]>summary::after{content:"－"}
+  .dv-more>ul{margin:0;padding:0 16px 14px 36px;font-size:17px;line-height:1.7;color:var(--ink)}
+  .dv-more>ul li+li{margin-top:6px}
+  .dv-acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+  .dv-acts.hidden{display:none!important}
+  .dv-acts .btn{min-height:56px;font-weight:800}
+  .dv-s .mtag{display:block;font-size:14px;margin:2px 0 0;padding:0 6px}
+  .pc-c .mtag{display:block;font-size:11px;margin:0;padding:0 2px}
+  .swapdlg h3{font-size:24px}
+  .swapdlg p{font-size:16px}
+  .swapdlg .sw-pre,.swapdlg .sw-err{font-size:17px}
+  .swapdlg .sw-acts .btn{flex:1 1 100%}
+  .notefold>summary::after{content:"＋";color:var(--muted);font-size:22px}
+  .notefold[open]>summary::after{content:"－"}
 }
 </style>
 </head>
@@ -170,9 +380,12 @@ details.fold[open]{padding-bottom:12px}
   <header class="hero">
     <div>
       <h1>送餐小組排假表</h1>
-      <p class="subtitle">單一小組（1 位組長＋2～3 位組員）· 每月每人休假天數一樣 · 休假時組長代班，兩人同天休就由「機動組」支援</p>
+      <p class="subtitle">單一小組 · 每人休假天數一樣 · 組員休由組長代班，不夠人由機動組支援</p>
     </div>
-    <span class="pill" id="pill">資料只存在這台裝置</span>
+    <div class="hero-side">
+      <button class="btn sm theme" id="btnTheme" type="button" aria-pressed="true" aria-label="切換深色／淺色主題" title="切換深色／淺色主題">主題：深色</button>
+      <span class="pill" id="pill">資料只存在這台裝置</span>
+    </div>
   </header>
 
   <main>
@@ -212,7 +425,7 @@ details.fold[open]{padding-bottom:12px}
 
     <details class="fold" id="fixedFold" open>
       <summary><span>指定休／指定長假（先設好再按「隨機排假」，重排時會保留）</span></summary>
-      <p class="help">兩種設法：① 在這裡點日期；② 或在下面「排假表」按「點格子設定指定休」後直接點格子。指定休會保留在每次重排裡；超過每人應休日數的部分算「請假」。長假可以用「人員＋起訖日」一次加入或移除。</p>
+      <details class="more"><summary>說明</summary><p class="help">兩種設法：① 在這裡點日期；② 或在下面「排假表」按「點格子設定指定休」後直接點格子。指定休會保留在每次重排裡；超過每人應休日數的部分算「請假」。長假可以用「人員＋起訖日」一次加入或移除。</p></details>
       <p class="fixsum" id="fixSum"></p>
       <div id="fixedBody"></div>
       <div class="rangebar">
@@ -224,32 +437,54 @@ details.fold[open]{padding-bottom:12px}
       </div>
     </details>
 
-    <section class="panel" aria-labelledby="h-board">
+    <section class="panel board-panel" aria-labelledby="h-board">
       <div class="panel-title">
         <h2 id="h-board">排假表</h2>
         <div class="legend" aria-label="圖例">
-          <span class="tag fixed">休＝指定休（你設定的）</span>
-          <span class="tag random">休＝隨機排的休</span>
-          <span class="tag leave">請假＝指定休超過應休日數的部分</span>
-          <span class="tag lead">米色路線＝組長代班</span>
-          <span class="tag sup">機動組＝需要支援的路線</span>
-          <span class="tag extra">多出＝整組沒人休的日子，機動組代跑他的線（不算休假）</span>
-          <span class="tag frun">灰色＝自己的路線（上班）；「班」＝組長上班、當天不用代跑</span>
+          <span class="tag off">休<small>（底線＝指定休）</small></span>
+          <span class="tag leave">請假</span>
+          <span class="tag sup">機動組支援</span>
         </div>
       </div>
-      <div class="tapbar"><button class="btn sm" id="btnTap" type="button" aria-pressed="false">點格子設定指定休：關</button><span class="help" id="tapHelp">打開後，點人員那一列的日期格就會切換「指定休」（會清掉目前排好的班表，指定休仍保留）。</span></div>
-      <div class="scroll" id="matrixWrap"></div>
-      <div class="pcards" id="pcards"></div>
+      <div class="tapbar"><button class="btn sm" id="btnView" type="button" aria-pressed="false">表格檢視</button><button class="btn sm hidden" id="btnRestoreAll" type="button">還原隨機（全部）</button><button class="btn sm" id="btnTap" type="button" aria-pressed="false">點格子設定指定休：關</button></div>
+      <details class="more"><summary>說明</summary>
+        <span class="help" id="tapHelp">打開後，點人員那一列的日期格就會切換「指定休」（會清掉目前排好的班表，指定休仍保留）。</span>
+        <ul class="guide">
+          <li>休：有底線的是你設定的指定休，沒底線的是隨機排的休；請假＝指定休超過應休日數的部分。</li>
+          <li>路線字母（淡色）＝組員自己的路線（上班）；米色字母＝組長代班跑那條線；青綠底＝機動組要支援的路線。</li>
+          <li>「多」＝整組沒人休的日子，機動組代跑他的線，他當天多出來（不算休假）。</li>
+        </ul>
+      </details>
+      <section class="dayview" id="dayView" aria-labelledby="dvLabel">
+        <nav class="dv-nav" aria-label="切換日期">
+          <button class="btn" id="dvPrev" type="button">‹ 前一天</button>
+          <button class="btn" id="dvNext" type="button">後一天 ›</button>
+        </nav>
+        <div class="dv-date"><h3 id="dvLabel" aria-live="polite"></h3><span class="dv-today hidden" id="dvTodayTag">今天</span></div>
+        <div class="dv-jump">
+          <button class="btn" id="dvToday" type="button">回到今天</button>
+          <div><label class="f" for="dvPick">選日期</label><input type="date" id="dvPick" min="2026-01-01" max="2027-12-31"></div>
+        </div>
+        <section class="dv-off" aria-labelledby="dvOffH"><h4 id="dvOffH">今天休假</h4><div id="dvOff"></div></section>
+        <ul class="dv-people" id="dvPeople"></ul>
+        <div class="dv-acts hidden" id="dvActs"><button class="btn" id="dvSwap" type="button">換線</button><button class="btn hidden" id="dvRestore" type="button">還原隨機（這天）</button></div>
+        <details class="dv-more" id="dvMore"><summary>詳細備註</summary><ul id="dvNotes"></ul></details>
+      </section>
+      <div class="calwrap" id="calWrap"></div>
+      <div class="scroll hidden" id="matrixWrap"></div>
+      <div class="pcards hidden" id="pcards"></div>
     </section>
 
     <section class="panel note-panel hidden" id="notePanel" aria-labelledby="h-note">
-      <h2 id="h-note">備註</h2>
-      <ul id="noteList"></ul>
-      <div class="cap" id="capNote"></div>
+      <details class="notefold" id="noteFold" open>
+        <summary><h2 id="h-note">備註</h2></summary>
+        <ul id="noteList"></ul>
+        <div class="cap" id="capNote"></div>
+      </details>
     </section>
 
-    <section class="panel" aria-labelledby="h-rule">
-      <h2 id="h-rule">排法規則</h2>
+    <details class="fold" id="ruleFold">
+      <summary><span>說明｜排法規則</span></summary>
       <ul class="guide">
         <li>每位組員固定跑一條路線，每天每條路線都要有人跑；每天最多 2 個人休。</li>
         <li>組員休假：組長代跑那條線。組長也休、或組長和組員同天休、或兩位組員同天休：多出來的線由「機動組」支援（機動組不指定人，只標註「機動組」）。</li>
@@ -258,9 +493,20 @@ details.fold[open]{padding-bottom:12px}
         <li>排不出來會標示「排不出」並列出原因與建議；最多試 3 版、8 秒，同一份設定確認排不出來就不會重跑。</li>
         <li class="hidden" id="ruleB">謝和成組：B 線組員休假、組長上班時，組長一定跑 B 線，另一條線才輪到機動組。</li>
       </ul>
-    </section>
+    </details>
   </main>
 
+  <dialog class="swapdlg" id="swapDlg" aria-labelledby="swH">
+    <form method="dialog" id="swForm">
+      <h3 id="swH">換線</h3>
+      <p>只能換當天上班、同一組的人（機動組代跑的線也可以換）。換完會標上「手動」，按「還原隨機」可以回到隨機排的結果。</p>
+      <div><label class="f" for="swA">第一條線</label><select id="swA"></select></div>
+      <div><label class="f" for="swB">第二條線</label><select id="swB"></select></div>
+      <p class="sw-pre" id="swPre" aria-live="polite"></p>
+      <p class="sw-err" id="swErr" role="alert"></p>
+      <div class="sw-acts"><button class="btn primary" id="swOk" type="button">確認換線</button><button class="btn hidden" id="swRestore" type="button">還原隨機（這天）</button><button class="btn" id="swCancel" type="button">取消</button></div>
+    </form>
+  </dialog>
   <footer class="site-foot">GROK 輔助</footer>
 </div>
 <div class="toast hidden" id="toast" role="status"></div>
@@ -1842,7 +2088,7 @@ details.fold[open]{padding-bottom:12px}
   function normalizeMonth(cfg, key, raw) {
     const dim = daysInMonthOf(key), md = Core.normalizeMonthData(coreCfg(cfg), key, raw);
     const q = Core.clampInt(raw && raw.quota && raw.quota.L, 0, dim, Core.defaultQuotaForMonth(key));
-    setQuota(cfg, md, q); md.moveOut = {}; md.moveIn = {};
+    setQuota(cfg, md, q); md.moveOut = {}; md.moveIn = {}; md.swaps = cleanSwaps(raw && raw.swaps, dim);
     return md;
   }
 
@@ -1852,9 +2098,68 @@ details.fold[open]{padding-bottom:12px}
   function zeroMin(cfg, md, dim) { const f = fixedPerDay(cfg, md, dim); let ov = 0; for (let d = 1; d <= dim; d++) ov += Math.max(0, f[d] - 1); return Math.max(0, dim - totalOff(cfg, md) + ov); }
   const dayCapFor = (cfg, md, dim) => totalOff(cfg, md) <= dim ? 1 : MAX_OFF;   // 合計 ≤ 天數：每天只排 1 人休（不會同天 2 人休而讓別天沒人休）
 
+  // ---------- 手動換線（隨機排好之後，組長在同一天、同一組上班的人之間對調路線） ----------
+  // swaps[日] = { 路線: 人員id 或 'mobile' }，只記跟隨機結果不一樣的那幾條線；對調後同一天每個人跑的線數、機動組的線數都不變（只是排列不同）
+  function swapDay(cfg, pd, ov) {
+    if (!ov || typeof ov !== 'object') return null;
+    const L = cfg.people.find(p => p.role === 'leader'), routes = Object.keys(pd.runs), want = {}, changed = [];
+    for (const r of Object.keys(ov)) { if (!pd.runs[r] || typeof ov[r] !== 'string') return null; }
+    for (const r of routes) { const pid = ov[r] !== undefined ? ov[r] : pd.runs[r].pid; want[r] = pid; if (pid !== pd.runs[r].pid) changed.push(r); }
+    if (!changed.length) return null;
+    const cnt = o => { const c = {}; for (const r of routes) c[o(r)] = (c[o(r)] || 0) + 1; return c; };
+    const a = cnt(r => pd.runs[r].pid), b = cnt(r => want[r]), ks = new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const k of ks) if ((a[k] || 0) !== (b[k] || 0)) return null;      // 不是單純對調：當天上班的人／機動組的線數必須跟原本一樣
+    const runs = {};
+    for (const r of routes) runs[r] = want[r] === pd.runs[r].pid ? pd.runs[r] : { pid: want[r], kind: want[r] === 'mobile' ? 'mobile' : want[r] === L.id ? 'leader' : 'swap' };
+    const mob = pd.mobile.filter(r => want[r] === 'mobile'); for (const r of routes) if (want[r] === 'mobile' && !mob.includes(r)) mob.push(r);
+    const lr = routes.find(r => want[r] === L.id) || '';
+    return { off: pd.off, runs, leaderRoute: lr, mobile: mob, extra: pd.extra, manual: changed.sort() };
+  }
+  // 這一天的路線有沒有問題（每條線都有人跑、組長只跑一條且休假不跑、上班的人都有線、優先路線規則）
+  function dayIssues(cfg, pd) {
+    const out = [], members = cfg.people.filter(p => p.role === 'member'), L = cfg.people.find(p => p.role === 'leader');
+    for (const r of [...members.map(m => m.route), ...(cfg.vacant || [])]) if (!pd.runs[r]) out.push(`${r} 線沒有人跑。`);
+    const cnt = {}; for (const r of Object.keys(pd.runs)) if (pd.runs[r].pid !== 'mobile') cnt[pd.runs[r].pid] = (cnt[pd.runs[r].pid] || 0) + 1;
+    for (const p of cfg.people) {
+      const n = cnt[p.id] || 0;
+      if (pd.off.includes(p.id) && n) out.push(`${p.name}休假，不能跑線。`);
+      if (n > 1) out.push(`${p.name}跑了 ${n} 條線。`);
+      if (p.role === 'member' && !pd.off.includes(p.id) && pd.extra !== p.id && n !== 1) out.push(`${p.name}上班卻沒有線。`);
+    }
+    const PR = priorityRoute(cfg);
+    if (PR) { const B = members.find(m => m.route === PR); if (B && pd.off.includes(B.id) && !pd.off.includes(L.id) && (!pd.runs[PR] || pd.runs[PR].pid !== L.id)) out.push(`${B.name}（${PR}）休假時，${L.name}要跑 ${PR} 線。`); }
+    return out;
+  }
+  const cleanSwaps = (raw, dim) => {
+    const out = {}; if (!raw || typeof raw !== 'object') return out;
+    for (const k of Object.keys(raw)) { const d = Number(k); if (!Number.isInteger(d) || d < 1 || d > dim || !raw[k] || typeof raw[k] !== 'object') continue;
+      const o = {}; for (const r of Object.keys(raw[k])) if (typeof raw[k][r] === 'string' && /^[A-Za-z0-9]{1,3}$/.test(r) && /^[A-Za-z0-9]{1,12}$/.test(raw[k][r])) o[r] = raw[k][r];
+      if (Object.keys(o).length) out[d] = o; }
+    return out;
+  };
+  // 在目前（含已換的）結果上，把 day 這天 r1、r2 兩條線的人對調。回傳 { ok, swaps } 或 { ok:false, reason }
+  function trySwap(cfg, off, dim, swaps, day, r1, r2) {
+    const base = dayPlans(cfg, off, dim)[day], cur = dayPlans(cfg, off, dim, swaps)[day], nm = id => id === 'mobile' ? '機動組' : (cfg.people.find(p => p.id === id) || {}).name;
+    if (!base || !cur) return { ok: false, reason: '沒有這一天。' };
+    if (!r1 || !r2 || r1 === r2 || !cur.runs[r1] || !cur.runs[r2]) return { ok: false, reason: '請選兩條不同的線。' };
+    const a = cur.runs[r1].pid, b = cur.runs[r2].pid;
+    if (a === b) return { ok: false, reason: a === 'mobile' ? '兩條線都是機動組在跑，對調沒有差別。' : `${nm(a)}已經在跑這兩條線。` };
+    const ov = {}; for (const r of Object.keys(cur.runs)) { const pid = r === r1 ? b : r === r2 ? a : cur.runs[r].pid; if (pid !== base.runs[r].pid) ov[r] = pid; }
+    let pd2 = base; if (Object.keys(ov).length) { pd2 = swapDay(cfg, base, ov); if (!pd2) return { ok: false, reason: '這樣換不成立（只能對調當天上班的人跟機動組的線）。' }; }
+    const bad = dayIssues(cfg, pd2); if (bad.length) return { ok: false, reason: bad[0] };
+    const next = JSON.parse(JSON.stringify(cleanSwaps(swaps, dim))); if (Object.keys(ov).length) next[day] = ov; else delete next[day];
+    return { ok: true, swaps: next };
+  }
+  // 重新隨機排假之後：還成立的換線留著，不成立的丟掉，回傳丟掉的日子
+  function reconcileSwaps(cfg, off, dim, swaps) {
+    const base = dayPlans(cfg, off, dim), kept = {}, dropped = [], clean = cleanSwaps(swaps, dim);
+    for (const k of Object.keys(clean)) { const d = Number(k), pd2 = swapDay(cfg, base[d], clean[k]); if (pd2 && !dayIssues(cfg, pd2).length) kept[d] = clean[k]; else dropped.push(d); }
+    return { swaps: kept, dropped: dropped.sort((x, y) => x - y) };
+  }
+
   // ---------- 每天誰跑哪條線 ----------
   // 規則：組員休 → 組長代跑；組長也休（或同天兩位組員休、組長只能顧一條）→ 機動組。謝和成組：B 線組員休且組長上班時，組長一定跑 B。
-  function dayPlans(cfg, off, dim) {
+  function dayPlans(cfg, off, dim, swaps) {
     const members = cfg.people.filter(p => p.role === 'member'), leader = cfg.people.find(p => p.role === 'leader'), vac = (cfg.vacant || []).filter(Boolean);
     const offSet = {}; for (const p of cfg.people) offSet[p.id] = new Set((off && off[p.id]) || []);
     const lcount = {}; [...members.map(m => m.route), ...vac].forEach(r => { lcount[r] = 0; });
@@ -1876,11 +2181,14 @@ details.fold[open]{padding-bottom:12px}
         const lo = Math.min(...members.map(m => scount[m.id])), c = members.filter(m => scount[m.id] === lo), m = c[d % c.length];
         scount[m.id]++; extra = m.id; mobile.push(m.route); runs[m.route] = { pid: 'mobile', kind: 'support', cov: m.id };
       }
-      days.push({ off: offIds, runs, leaderRoute, mobile, extra });
+      const pd = { off: offIds, runs, leaderRoute, mobile, extra };
+      const sw = swaps && swaps[d] ? swapDay(cfg, pd, swaps[d]) : null;
+      const fin = sw || pd; fin.routeOf = {}; for (const r of Object.keys(fin.runs)) if (fin.runs[r].pid !== 'mobile') fin.routeOf[fin.runs[r].pid] = r; if (!fin.manual) fin.manual = [];
+      days.push(fin);
     }
     return days;
   }
-  const mobileDays = (cfg, off, dim) => { const pl = dayPlans(cfg, off, dim), out = []; for (let d = 1; d <= dim; d++) if (pl[d].mobile.length) out.push({ day: d, routes: pl[d].mobile.slice(), extra: pl[d].extra || '' }); return out; };
+  const mobileDays = (cfg, off, dim, swaps) => { const pl = dayPlans(cfg, off, dim, swaps), out = []; for (let d = 1; d <= dim; d++) if (pl[d].mobile.length) out.push({ day: d, routes: pl[d].mobile.slice(), extra: pl[d].extra || '' }); return out; };
 
   // ---------- 規格（分散）：直接沿用 core.js distSpec 的邏輯 ----------
   function distSpec(md, id, dim, u) {
@@ -2061,7 +2369,8 @@ details.fold[open]{padding-bottom:12px}
       if (o.length !== t) out.push(`${p.name}目前休假共 ${o.length} 天，應該剛好 ${t} 天。`);
       const miss = fx.filter(d => !o.includes(d)); if (miss.length) out.push(`${p.name}的指定休 ${miss.map(date).join('、')} 被取消了。`);
     }
-    const plan = dayPlans(cfg, md.off, dim);
+    const plan = dayPlans(cfg, md.off, dim, md.swaps);
+    { const bp = md.swaps && Object.keys(md.swaps).length ? dayPlans(cfg, md.off, dim) : null; if (bp) for (const k of Object.keys(md.swaps)) { const d = Number(k); if (!bp[d] || !swapDay(cfg, bp[d], md.swaps[k])) out.push(`${date(d)} 手動換線已經不成立，請按「還原隨機」。`); } }
     for (let d = 1; d <= dim; d++) {
       const pd = plan[d];
       if (pd.off.length > MAX_OFF) out.push(`${date(d)} 有 ${pd.off.length} 人休假（${pd.off.map(id => cfg.people.find(p => p.id === id).name).join('、')}），同組每天最多休 ${MAX_OFF} 人。`);
@@ -2151,7 +2460,7 @@ details.fold[open]{padding-bottom:12px}
 
   // ---------- 統計與備註 ----------
   function stats(cfg, md, dim, key) {
-    const plan = dayPlans(cfg, md.off, dim), cc = coreCfg(cfg), st = Core.maxStreaks(cc, { off: md.off, carry: md.carry }, dim), dr = Core.distributionReport(cc, md, dim);
+    const plan = dayPlans(cfg, md.off, dim, md.swaps), cc = coreCfg(cfg), st = Core.maxStreaks(cc, { off: md.off, carry: md.carry }, dim), dr = Core.distributionReport(cc, md, dim);
     const leader = cfg.people.find(p => p.role === 'leader'), cover = {}, coverDays = [];
     let leaderCover = 0;
     for (let d = 1; d <= dim; d++) if (plan[d].leaderRoute) { leaderCover++; cover[plan[d].leaderRoute] = (cover[plan[d].leaderRoute] || 0) + 1; coverDays.push(d); }
@@ -2160,7 +2469,7 @@ details.fold[open]{padding-bottom:12px}
       const r = dr.people.find(x => x.id === p.id);
       return { id: p.id, name: p.name, role: p.role, route: p.route, off: o.length, leave: lv.length, rest: o.length - lv.length, maxRun: st[p.id].max, maxOffRun: r.maxOffRun };
     });
-    const mob = mobileDays(cfg, md.off, dim);
+    const mob = mobileDays(cfg, md.off, dim, md.swaps);
     return { people, leaderCover, cover, coverDays, leaderOff: people[0].off, leaderLeave: people[0].leave, mobile: mob, mobileCount: mob.length, leader };
   }
   function noteLines(cfg, md, dim, key) {
@@ -2175,6 +2484,7 @@ details.fold[open]{padding-bottom:12px}
     } else lines.push('每天都至少有 1 人休，沒有整組沒人休的日子。');
     for (const p of s.people.slice(1)) lines.push(`${p.name}（${p.route} 線）：休 ${p.rest} 天${p.leave ? `、請假 ${p.leave} 天` : ''}，最長連休 ${p.maxOffRun} 天、最長連上 ${p.maxRun} 天。`);
     if ((cfg.vacant || []).length) lines.push(`${cfg.vacant.join('、')} 線沒有固定組員，每天由組長或機動組跑（組長休假那天一定是機動組）。`);
+    { const sk = Object.keys(md.swaps || {}).map(Number).sort((x, y) => x - y); if (sk.length) lines.push(`手動換線 ${sk.length} 天（${sk.map(d => md2(key, d)).join('、')}）：已蓋在隨機結果上，按「還原隨機」可回到原本的排法。`); }
     const q = md.quota.L, hint = Core.restHintForMonth(key);
     lines.push(`每人應休日數 ${q} 天（${hint.official ? `週末 ${hint.weekendCount} 天＋國定假日／補假 ${hint.holidayCount} 天` : '沒有該年度的官方假日資料，用預設值'}），同組每人一樣。`);
     return lines;
@@ -2185,7 +2495,7 @@ details.fold[open]{padding-bottom:12px}
     md.runCap = res.runCap || 0; md.lowLeave = !!res.lowLeave; md.relaxed = (res.relaxed || []).map(r => ({ id: r.id, name: r.name, cap: r.cap }));
   }
 
-  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
+  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, priorityRoute, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, applyResult, diagnose, md2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = Small; else root.SmallCore = Small;
 })(typeof self !== 'undefined' ? self : this);
 </script>
@@ -2196,7 +2506,7 @@ details.fold[open]{padding-bottom:12px}
   const KEY = '送餐小組排假表_v1_', SEL = '送餐小組排假表_v1_selected';
   const WD = ['日', '一', '二', '三', '四', '五', '六'];
   const $ = id => document.getElementById(id);
-  const st = { tap: false, gid: 'g3', cfg: null, month: '', months: {}, badSig: '', badProblems: [], busy: false, msg: null };
+  const st = { view: 'cal', tap: false, gid: 'g3', cfg: null, month: '', months: {}, badSig: '', badProblems: [], busy: false, msg: null, dvDay: 0, dvMonth: '', dvOpen: false };
 
   // ---------- 儲存 ----------
   function lsGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
@@ -2225,7 +2535,7 @@ details.fold[open]{padding-bottom:12px}
   function toast(t) { const el = $('toast'); el.textContent = t; el.classList.remove('hidden'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.add('hidden'), 2200); }
   function setStatus(cls, html) { st.msg = { cls, html }; paintStatus(); }
   function paintStatus() { const el = $('status'), m = st.msg || { cls: '', html: '選好小組與月份後，按「隨機排假」。' }; el.className = 'status' + (m.cls ? ' ' + m.cls : ''); el.innerHTML = m.html; }
-  function clearSchedule(m) { m.off = {}; for (const p of st.cfg.people) m.off[p.id] = []; m.generated = false; m.edited = false; m.runCap = 0; m.relaxed = []; m.lowLeave = false; }
+  function clearSchedule(m) { m.off = {}; for (const p of st.cfg.people) m.off[p.id] = []; m.generated = false; m.edited = false; m.swaps = {}; m.runCap = 0; m.relaxed = []; m.lowLeave = false; }
   function isHoliday(y, mo, d) { const yd = Core.OFFICIAL_WEEKDAY_HOLIDAYS && Core.OFFICIAL_WEEKDAY_HOLIDAYS[y]; return !!(yd && (yd[mo] || []).includes(d)); }
   function dayInfo(d) { const [y, mo] = st.month.split('-').map(Number), w = new Date(y, mo - 1, d).getDay(); return { w, we: w === 0 || w === 6 || isHoliday(y, mo, d) }; }
 
@@ -2273,14 +2583,18 @@ details.fold[open]{padding-bottom:12px}
   }
 
   // ---------- 畫面：排假表 ----------
+  const isMan = (pl, pid) => !!(pl && pl.manual && pl.manual.length && pl.routeOf[pid] && pl.manual.includes(pl.routeOf[pid]));
+  const manMob = pl => !!(pl && pl.manual && pl.manual.some(r => pl.runs[r] && pl.runs[r].pid === 'mobile'));
+  const MT = '<small class="mtag">手動</small>';
   function cellOf(p, d, v) {
-    if (v.off[p.id].has(d)) { const lv = v.leave[p.id].has(d); return { cls: lv ? 'leave' : (v.fixed[p.id].has(d) ? 'fixed' : 'random'), text: lv ? '請假' : '休' }; }
+    if (v.off[p.id].has(d)) { const lv = v.leave[p.id].has(d); return { cls: lv ? 'leave' : (v.fixed[p.id].has(d) ? 'off fixed' : 'off'), text: lv ? '請假' : '休' }; }
     if (!v.plan) return { cls: '', text: '' };
-    if (p.role === 'member') return v.plan[d].extra === p.id ? { cls: 'extra', text: '多出' } : { cls: 'frun', text: p.route };
-    const r = v.plan[d].leaderRoute; return r ? { cls: 'frun lead', text: r } : { cls: 'frun', text: '班' };
+    const pl = v.plan[d], mk = isMan(pl, p.id) ? '<small class="mtag">手動</small>' : '';
+    if (p.role === 'member') return pl.extra === p.id ? { cls: 'extra', text: '多' } : { cls: 'frun' + (mk ? ' man' : ''), text: esc(pl.routeOf[p.id] || p.route) + mk };
+    const r = pl.leaderRoute; return r ? { cls: 'frun lead' + (mk ? ' man' : ''), text: esc(r) + mk } : { cls: 'frun', text: '' };
   }
   function viewOf() {
-    const m = md(), dim = dimOf(), gen = !!m.generated, v = { dim, gen, off: {}, fixed: {}, leave: {}, plan: gen ? Small.dayPlans(st.cfg, m.off, dim) : null };
+    const m = md(), dim = dimOf(), gen = !!m.generated, v = { dim, gen, off: {}, fixed: {}, leave: {}, plan: gen ? Small.dayPlans(st.cfg, m.off, dim, m.swaps) : null };
     for (const p of st.cfg.people) {
       v.fixed[p.id] = new Set(Core.uniqueDays(m.fixed && m.fixed[p.id], dim));
       v.off[p.id] = new Set(gen ? Core.uniqueDays(m.off && m.off[p.id], dim) : [...v.fixed[p.id]].slice(0, Core.actualOff(m, p.id)));
@@ -2289,6 +2603,143 @@ details.fold[open]{padding-bottom:12px}
     }
     return v;
   }
+  // 月曆檢視：每天一張卡（誰休、每人狀態、組長做什麼、機動組支援哪條線）
+  function paintCalendar(v) {
+    const [yy, mo] = st.month.split('-').map(Number), dim = v.dim, first = new Date(yy, mo - 1, 1).getDay(), now = new Date();
+    const todayD = now.getFullYear() === yy && now.getMonth() + 1 === mo ? now.getDate() : 0;
+    let h = WD.map((w, i) => `<div class="ch${i === 0 || i === 6 ? ' we' : ''}">週${w}</div>`).join('');
+    for (let i = 0; i < first; i++) h += '<div class="cd blank"></div>';
+    const lead = st.cfg.people.find(p => p.role === 'leader');
+    for (let d = 1; d <= dim; d++) {
+      const pl = v.plan ? v.plan[d] : null, offs = st.cfg.people.filter(p => v.off[p.id].has(d));
+      let rows = '';
+      for (const p of st.cfg.people) {
+        const isOff = v.off[p.id].has(d), lv = v.leave[p.id].has(d), fx = v.fixed[p.id].has(d);
+        let stt;
+        if (isOff) stt = lv ? '<span class="st leave">請假</span>' : `<span class="st off${fx ? ' fixed' : ''}">休</span>`;
+        else if (!pl) stt = '<span class="st mute">—</span>';
+        else if (pl.extra === p.id) stt = '<span class="st extra">多</span>';
+        else if (p.role === 'leader' && pl.leaderRoute) stt = `<span class="st lead">代${esc(pl.leaderRoute)}線${isMan(pl, p.id) ? MT : ''}</span>`;
+        else if (p.role === 'member' && pl.routeOf[p.id] && pl.routeOf[p.id] !== p.route) stt = `<span class="st mute">跑${esc(pl.routeOf[p.id])}線${isMan(pl, p.id) ? MT : ''}</span>`;
+        else stt = '<span class="st mute">上班</span>';
+        rows += `<div class="cr${st.tap ? ' tap' : ''}" data-pid="${p.id}" data-day="${d}"${st.tap ? ` tabindex="0" role="button" aria-pressed="${fx}"` : ''}><span class="cn">${esc(p.name)}${p.role === 'leader' ? '' : '-' + esc(p.route) + '線'}</span>${stt}</div>`;
+      }
+      let foot = '';
+      if (pl) {
+        const lo = v.off[lead.id].has(d);
+        foot = `<span class="lf">${lo ? '組長休假' : pl.leaderRoute ? `組長代 ${esc(pl.leaderRoute)} 線` : '組長本職'}</span>`;
+        if (pl.mobile.length) foot += `<span class="mb">機動組：${pl.mobile.map(esc).join('、')}${manMob(pl) ? MT : ''}</span>`;
+        foot += `<span class="cdact"><button class="btn sm" type="button" data-swap-day="${d}">換線</button>${st.months[st.month].swaps && st.months[st.month].swaps[d] ? `<button class="btn sm" type="button" data-restore-day="${d}">還原隨機</button>` : ''}</span>`;
+      }
+      h += `<article class="cd${d === todayD ? ' today' : ''}${dayInfo(d).we ? ' we' : ''}" aria-label="${mo}/${d}"><header class="cdh"><b class="dn">${d}<small class="wd2">（${WD[dayInfo(d).w]}）</small></b><span class="oc">休 ${offs.length} 人</span></header>
+        <div class="offbox"><b>今日休假人員（${offs.length}）</b><span>${v.gen || offs.length ? (offs.length ? offs.map(p => esc(p.name)).join('、') : '今日沒人休') : '尚未排出休假'}</span></div>
+        <div class="crs">${rows}</div><footer class="cdf">${foot}</footer></article>`;
+    }
+    $('calWrap').innerHTML = h;
+  }
+  // 手機「一天一頁」：只看選定那一天；人員只給短狀態，細節收在 <details>
+  const pad2 = n => String(n).padStart(2, '0');
+  const todayParts = () => { const n = new Date(); return { y: n.getFullYear(), mo: n.getMonth() + 1, d: n.getDate() }; };
+  function shortStatus(p, d, v) {
+    const pl = v.plan ? v.plan[d] : null;
+    if (v.off[p.id].has(d)) return v.leave[p.id].has(d) ? { cls: 'leave', text: '請假' } : { cls: 'off' + (v.fixed[p.id].has(d) ? ' fixed' : ''), text: '休' };
+    if (!pl) return { cls: 'mute', text: '—' };
+    if (pl.extra === p.id) return { cls: 'mute', text: '多' };
+    const mk = isMan(pl, p.id) ? MT : '';
+    if (p.role === 'leader') return pl.leaderRoute ? { cls: 'mute', text: '代 ' + esc(pl.leaderRoute) + mk } : { cls: 'mute', text: '上班' };
+    return { cls: 'mute', text: '上 ' + esc(pl.routeOf[p.id] || p.route) + mk };
+  }
+  function longStatus(p, d, v) {
+    const pl = v.plan ? v.plan[d] : null, lead = p.role === 'leader';
+    if (v.off[p.id].has(d)) return v.leave[p.id].has(d) ? '請假（指定休超過應休日數的部分）' : (v.fixed[p.id].has(d) ? '休（指定休）' : '休（隨機排的休）');
+    if (!pl) return '尚未排班';
+    if (pl.extra === p.id) return '多出來（整組沒人休，機動組代跑他的線，不算休假）';
+    const mk = isMan(pl, p.id) ? '（手動換線）' : '';
+    if (lead) return pl.leaderRoute ? `組長代班，跑 ${pl.leaderRoute} 線${mk}` : '組長本職';
+    return `上班，跑 ${pl.routeOf[p.id] || p.route} 線${mk}`;
+  }
+  function paintDayView(v) {
+    const [yy, mo] = st.month.split('-').map(Number), dim = v.dim, t = todayParts(), isThisMonth = t.y === yy && t.mo === mo;
+    if (st.dvMonth !== st.month) { st.dvMonth = st.month; st.dvDay = isThisMonth ? t.d : 1; }
+    const d = st.dvDay = Math.min(dim, Math.max(1, Number(st.dvDay) || 1));
+    const w = dayInfo(d), pl = v.plan ? v.plan[d] : null;
+    $('dvLabel').textContent = `${yy} 年 ${mo}/${d}（週${WD[w.w]}）`;
+    $('dvTodayTag').classList.toggle('hidden', !(isThisMonth && t.d === d));
+    $('dvPick').value = `${yy}-${pad2(mo)}-${pad2(d)}`;
+    $('dvPrev').disabled = st.month <= '2026-01' && d === 1;
+    $('dvNext').disabled = st.month >= '2027-12' && d === dim;
+    const offs = st.cfg.people.filter(p => v.off[p.id].has(d)), lead = st.cfg.people.find(p => p.role === 'leader');
+    $('dvOffH').textContent = v.gen || offs.length ? `今天休假（${offs.length} 人）` : '今天休假';
+    $('dvOff').innerHTML = offs.length
+      ? `<ul class="dv-offlist">${offs.map(p => `<li class="dv-offn ${v.leave[p.id].has(d) ? 'leave' : 'off'}">${esc(p.name)}${v.leave[p.id].has(d) ? '<small>請假</small>' : ''}</li>`).join('')}</ul>`
+      : `<p class="dv-none">${v.gen ? '今天沒人休' : '尚未排出休假'}</p>`;
+    let ppl = '', notes = '';
+    for (const p of st.cfg.people) {
+      const s2 = shortStatus(p, d, v), fx = v.fixed[p.id].has(d), isLead = p.role === 'leader';
+      ppl += `<li class="dv-p${st.tap ? ' tap' : ''}" data-pid="${p.id}" data-day="${d}"${st.tap ? ` tabindex="0" role="button" aria-pressed="${fx}"` : ''}><span class="dv-n">${esc(p.name)}<small>${isLead ? '組長' : esc(p.route) + ' 線'}</small></span><span class="dv-s ${s2.cls}">${s2.text}</span></li>`;
+      notes += `<li>${esc(p.name)}（${isLead ? '組長' : esc(p.route) + ' 線'}）：${longStatus(p, d, v)}</li>`;
+    }
+    if (pl && pl.mobile.length) {
+      ppl += `<li class="dv-p"><span class="dv-n">機動組<small>支援</small></span><span class="dv-s mob">${pl.mobile.map(esc).join('、')} 線${manMob(pl) ? MT : ''}</span></li>`;
+      notes += `<li>機動組：今天支援 ${pl.mobile.map(esc).join('、')} 線（那條線的組員與組長都不能跑）</li>`;
+    }
+    if (pl) notes += `<li>${v.off[lead.id].has(d) ? '組長今天休假' : pl.leaderRoute ? `組長今天代 ${esc(pl.leaderRoute)} 線` : '組長今天本職，不用代班'}</li>`;
+    if (v.gen) notes += `<li>本月休假天數：${st.cfg.people.map(p => `${esc(p.name)} ${v.off[p.id].size} 天`).join('、')}</li>`;
+    else notes += '<li>這個月還沒排班：請到下方按「隨機排假」。</li>';
+    $('dvPeople').innerHTML = ppl; $('dvNotes').innerHTML = notes;
+    const sw = md().swaps || {}; $('dvActs').classList.toggle('hidden', !v.gen); $('dvRestore').classList.toggle('hidden', !sw[d]);
+    $('dvMore').open = st.dvOpen;
+  }
+  // ---------- 換線（手動覆蓋隨機結果） ----------
+  const swSel = { day: 0 };
+  function swapRunners(d) {
+    const pl = viewOf().plan[d], out = [];
+    for (const r of Object.keys(pl.runs)) { const pid = pl.runs[r].pid, p = st.cfg.people.find(x => x.id === pid); out.push({ route: r, label: p ? `${p.name}${p.role === 'leader' ? '（組長）' : ''}　跑 ${r} 線` : `機動組　跑 ${r} 線` }); }
+    return out;
+  }
+  function swapPreview() {
+    const d = swSel.day, a = $('swA').value, b = $('swB').value, pre = $('swPre'), err = $('swErr'), ok = $('swOk');
+    const m = md(), res = Small.trySwap(st.cfg, m.off, dimOf(), m.swaps || {}, d, a, b);
+    if (res.ok) {
+      const pl = Small.dayPlans(st.cfg, m.off, dimOf(), res.swaps)[d], nm = r => { const pid = pl.runs[r].pid, p = st.cfg.people.find(x => x.id === pid); return p ? p.name : '機動組'; };
+      pre.textContent = `換完：${nm(a)} 跑 ${a} 線、${nm(b)} 跑 ${b} 線。`; err.textContent = ''; ok.disabled = false;
+    } else { pre.textContent = ''; err.textContent = res.reason || '這樣不能換。'; ok.disabled = true; }
+  }
+  function openSwap(d) {
+    const m = md(); if (!m.generated) { toast('先按「隨機排假」再換線'); return; }
+    swSel.day = d; const opts = swapRunners(d), mo = st.month.split('-')[1];
+    $('swH').textContent = `換線　${Number(mo)}/${d}（週${WD[dayInfo(d).w]}）`;
+    const html = opts.map(o => `<option value="${esc(o.route)}">${esc(o.label)}</option>`).join('');
+    $('swA').innerHTML = html; $('swB').innerHTML = html; $('swA').selectedIndex = 0; $('swB').selectedIndex = opts.length > 1 ? 1 : 0;
+    $('swRestore').classList.toggle('hidden', !(m.swaps && m.swaps[d]));
+    swapPreview();
+    const dlg = $('swapDlg'); if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
+  }
+  function closeSwap() { const dlg = $('swapDlg'); if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); }
+  function doSwap() {
+    const m = md(), dim = dimOf(), d = swSel.day, a = $('swA').value, b = $('swB').value;
+    const res = Small.trySwap(st.cfg, m.off, dim, m.swaps || {}, d, a, b);
+    if (!res.ok) { $('swErr').textContent = res.reason || '這樣不能換。'; return; }
+    const prev = m.swaps || {}; m.swaps = res.swaps;
+    const issues = Small.verify(st.cfg, m, dim, st.month);
+    if (issues.length) { m.swaps = prev; $('swErr').textContent = '換完沒有通過驗證，已取消：' + issues[0]; return; }
+    save(); closeSwap(); st.msg = null; setStatus('ok', `${Number(st.month.split('-')[1])}/${d} 已換線（${esc(a)} 線 ⇄ ${esc(b)} 線），驗證通過：每條線每天都有人跑。`); renderAll({ keepPeople: true }); toast('已換線，標上「手動」');
+  }
+  function restoreDay(d) {
+    const m = md(); if (!m.swaps || !m.swaps[d]) return;
+    delete m.swaps[d]; save(); st.msg = null; setStatus('ok', `${Number(st.month.split('-')[1])}/${d} 已還原成隨機排的結果。`); renderAll({ keepPeople: true }); toast('已還原這一天');
+  }
+  function restoreAll() {
+    const m = md(), n = Object.keys(m.swaps || {}).length; if (!n) return;
+    m.swaps = {}; save(); st.msg = null; setStatus('ok', `已還原成隨機排的結果（共 ${n} 天的手動換線）。`); renderAll({ keepPeople: true }); toast('已全部還原');
+  }
+  function gotoDate(y, mo, d) {
+    const dt = new Date(y, mo - 1, d), key = `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}`;
+    if (key < '2026-01' || key > '2027-12') { toast('只能看 2026-01 到 2027-12'); return; }
+    if (key !== st.month) { settle(); st.month = key; ensureMonth(); st.badSig = ''; st.msg = null; st.dvMonth = key; st.dvDay = dt.getDate(); save(); renderAll(); }
+    else { st.dvDay = dt.getDate(); paintDayView(viewOf()); }
+  }
+  function stepDay(n) { const [yy, mo] = st.month.split('-').map(Number); gotoDate(yy, mo, st.dvDay + n); }
   function paintBoard() {
     const v = viewOf(), dim = v.dim, mo = Number(st.month.split('-')[1]);
     let h = '<table class="matrix"><caption class="hidden">' + esc(st.month) + ' 排假表</caption><thead><tr><th class="nm" scope="col">人員／路線</th>';
@@ -2296,19 +2747,25 @@ details.fold[open]{padding-bottom:12px}
     h += '<th scope="col" class="tot">休</th></tr></thead><tbody>';
     for (const p of st.cfg.people) {
       h += `<tr><th scope="row" class="nm">${esc(p.name)}<small> ${p.role === 'leader' ? '組長' : p.route}</small></th>`;
-      for (let d = 1; d <= dim; d++) { const c = cellOf(p, d, v); h += `<td class="cell ${c.cls}${st.tap ? ' tap' : ''}" data-pid="${p.id}" data-day="${d}"${st.tap ? ` tabindex="0" role="button" aria-pressed="${v.fixed[p.id].has(d)}"` : ''}>${c.text}</td>`; }
+      for (let d = 1; d <= dim; d++) { const c = cellOf(p, d, v); h += `<td class="cell ${c.cls}${dayInfo(d).we ? ' we' : ''}${st.tap ? ' tap' : ''}" data-pid="${p.id}" data-day="${d}"${st.tap ? ` tabindex="0" role="button" aria-pressed="${v.fixed[p.id].has(d)}"` : ''}>${c.text}</td>`; }
       h += `<td class="tot">${v.gen ? v.off[p.id].size : '—'}</td></tr>`;
     }
     h += '<tr><th scope="row" class="nm">機動組</th>';
     let mobN = 0;
-    for (let d = 1; d <= dim; d++) { const r = v.plan ? v.plan[d].mobile : []; if (r.length) mobN++; h += `<td class="cell ${r.length ? 'frun sup' : ''}">${r.length ? r.join('+') : ''}</td>`; }
+    for (let d = 1; d <= dim; d++) { const r = v.plan ? v.plan[d].mobile : []; if (r.length) mobN++; h += `<td class="cell ${r.length ? 'frun sup' : ''}${dayInfo(d).we ? ' we' : ''}">${r.length ? r.join('+') + (manMob(v.plan[d]) ? MT : '') : ''}</td>`; }
     h += `<td class="tot">${v.gen ? mobN + ' 天' : '—'}</td></tr></tbody></table>`;
     $('matrixWrap').innerHTML = h;
+    paintCalendar(v);
+    const cal = st.view === 'cal';
+    $('btnRestoreAll').classList.toggle('hidden', !(v.gen && Object.keys(md().swaps || {}).length));
+    paintDayView(v); $('dayView').classList.toggle('hidden', !cal);
+    $('calWrap').classList.toggle('hidden', !cal); $('matrixWrap').classList.toggle('hidden', cal); $('pcards').classList.toggle('hidden', cal);
+    $('btnView').textContent = cal ? '表格檢視' : '月曆檢視'; $('btnView').setAttribute('aria-pressed', String(!cal));
     // 手機：每人一張月曆卡
     const first = new Date(Number(st.month.split('-')[0]), mo - 1, 1).getDay(), cards = [];
     const grid = (fn, pid) => { let g = WD.map((w, i) => `<div class="pc-w${i === 0 || i === 6 ? ' we' : ''}">${w}</div>`).join(''); for (let i = 0; i < first; i++) g += '<div class="pc-c blank"></div>'; for (let d = 1; d <= dim; d++) { const c = fn(d); g += `<div class="pc-c ${c.cls}${pid && st.tap ? ' tap' : ''}"${pid ? ` data-pid="${pid}" data-day="${d}"` : ''}${pid && st.tap ? ` tabindex="0" role="button" aria-pressed="${v.fixed[pid].has(d)}"` : ''}><b>${d}</b>${c.text}</div>`; } return g; };
     for (const p of st.cfg.people) cards.push(`<article class="pcard"><div class="pc-h"><b>${esc(p.name)}</b><span class="pc-s">${p.role === 'leader' ? '組長' : p.route + ' 線'}${v.gen ? ' · 休 ' + v.off[p.id].size + ' 天' : ''}</span></div><div class="pc-g">${grid(d => cellOf(p, d, v), p.id)}</div></article>`);
-    cards.push(`<article class="pcard"><div class="pc-h"><b>機動組</b><span class="pc-s">${v.gen ? '支援 ' + mobN + ' 天' : ''}</span></div><div class="pc-g">${grid(d => { const r = v.plan ? v.plan[d].mobile : []; return { cls: r.length ? 'frun sup' : '', text: r.join('+') }; })}</div></article>`);
+    cards.push(`<article class="pcard"><div class="pc-h"><b>機動組</b><span class="pc-s">${v.gen ? '支援 ' + mobN + ' 天' : ''}</span></div><div class="pc-g">${grid(d => { const r = v.plan ? v.plan[d].mobile : []; return { cls: r.length ? 'frun sup' : '', text: r.join('+') + (r.length && manMob(v.plan[d]) ? MT : '') }; })}</div></article>`);
     $('pcards').innerHTML = cards.join('');
   }
   function capLine(m) {
@@ -2350,9 +2807,13 @@ details.fold[open]{padding-bottom:12px}
         const m = md(), dim = dimOf(), key = st.month;
         const r = Small.regenerate(st.cfg, m, dim, { key, skipSig: st.badSig, skipProblems: st.badProblems, avoid: m.generated ? Small.offSig(st.cfg, m.off) : '' });
         if (r.ok) {
-          Small.applyResult(m, r.res); st.badSig = ''; st.badProblems = [];
-          const mob = Small.mobileDays(st.cfg, m.off, dim).length;
-          setStatus('ok', `已排好並通過驗證（試了 ${r.tries} 版、${((r.res.ms || 0) / 1000).toFixed(1)} 秒）：機動組要支援 ${mob} 天。`);
+          const oldSw = m.swaps || {}; Small.applyResult(m, r.res); st.badSig = ''; st.badProblems = [];
+          const rc = Small.reconcileSwaps(st.cfg, m.off, dim, oldSw); m.swaps = rc.swaps;
+          const keptN = Object.keys(rc.swaps).length, mo2 = Number(st.month.split('-')[1]);
+          const swNote = keptN || rc.dropped.length ? `<br>手動換線：${keptN ? `保留 ${keptN} 天` : '沒有保留的'}${rc.dropped.length ? `；${rc.dropped.length} 天（${rc.dropped.map(x => mo2 + '/' + x).join('、')}）在新排法下不成立，已移除` : ''}。` : '';
+          const mob = Small.mobileDays(st.cfg, m.off, dim, m.swaps).length;
+          setStatus('ok', `已排好並通過驗證（試了 ${r.tries} 版、${((r.res.ms || 0) / 1000).toFixed(1)} 秒）：機動組要支援 ${mob} 天。${swNote}`);
+          if (rc.dropped.length) toast(`手動換線有 ${rc.dropped.length} 天不成立，已移除`);
         } else {
           if (r.stage !== 'cached') { st.badSig = r.sig; st.badProblems = r.problems; }
           const list = (r.problems || []).map(x => `<li>${esc(x)}</li>`).join('');
@@ -2425,11 +2886,12 @@ details.fold[open]{padding-bottom:12px}
     changed(`${p.name} ${Number(st.month.split('-')[1])}/${d} 已${was ? '取消' : '設為'}指定休${wasGen ? '；之前排的班表已清除，請按「隨機排假」重排（指定休會保留）' : '；設好後按「隨機排假」'}。`);
     renderAll({ keepPeople: true });
   }
+  $('btnView').addEventListener('click', () => { st.view = st.view === 'cal' ? 'table' : 'cal'; renderAll({ keepPeople: true }); });
   $('btnTap').addEventListener('click', () => { st.tap = !st.tap; renderAll({ keepPeople: true }); });
   function tapCell(e) { if (!st.tap) return; const c = e.target.closest('[data-pid][data-day]'); if (c) toggleFixed(c.dataset.pid, Number(c.dataset.day)); }
-  $('matrixWrap').addEventListener('click', tapCell); $('pcards').addEventListener('click', tapCell);
+  $('matrixWrap').addEventListener('click', tapCell); $('pcards').addEventListener('click', tapCell); $('calWrap').addEventListener('click', tapCell);
   const tapKey = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapCell(e); } };
-  $('matrixWrap').addEventListener('keydown', tapKey); $('pcards').addEventListener('keydown', tapKey);
+  $('matrixWrap').addEventListener('keydown', tapKey); $('pcards').addEventListener('keydown', tapKey); $('calWrap').addEventListener('keydown', tapKey);
   function range(on) {
     const m = md(), dim = dimOf(), a = Number($('rgFrom').value), b = Number($('rgTo').value);
     if (!Number.isInteger(a) || !Number.isInteger(b) || a < 1 || b < 1 || a > dim || b > dim) { toast(`請填 1～${dim} 之間的日期`); return; }
@@ -2438,6 +2900,39 @@ details.fold[open]{padding-bottom:12px}
   }
   $('rgAdd').addEventListener('click', () => range(true));
   $('rgDel').addEventListener('click', () => range(false));
+
+  // 手機一天一頁
+  $('dvPrev').addEventListener('click', () => stepDay(-1));
+  $('dvNext').addEventListener('click', () => stepDay(1));
+  $('dvToday').addEventListener('click', () => { const t = todayParts(); gotoDate(t.y, t.mo, t.d); });
+  $('dvPick').addEventListener('change', e => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(e.target.value); if (m) gotoDate(Number(m[1]), Number(m[2]), Number(m[3])); else paintDayView(viewOf()); });
+  $('dvMore').addEventListener('toggle', e => { st.dvOpen = e.target.open; });
+  $('dvSwap').addEventListener('click', () => openSwap(st.dvDay));
+  $('dvRestore').addEventListener('click', () => restoreDay(st.dvDay));
+  $('btnRestoreAll').addEventListener('click', restoreAll);
+  $('swA').addEventListener('change', swapPreview); $('swB').addEventListener('change', swapPreview);
+  $('swOk').addEventListener('click', doSwap); $('swCancel').addEventListener('click', closeSwap);
+  $('swRestore').addEventListener('click', () => { const d = swSel.day; closeSwap(); restoreDay(d); });
+  $('calWrap').addEventListener('click', e => { const a = e.target.closest('[data-swap-day]'), b = e.target.closest('[data-restore-day]'); if (a) openSwap(Number(a.dataset.swapDay)); else if (b) restoreDay(Number(b.dataset.restoreDay)); });
+  $('dvPeople').addEventListener('click', tapCell);
+  $('dvPeople').addEventListener('keydown', tapKey);
+  // 深色／淺色主題：存在 localStorage；沒存過就跟著系統（prefers-color-scheme）
+  const THEME_KEY = '送餐小組排假表_theme', darkMq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function paintTheme() {
+    const dark = document.documentElement.getAttribute('data-theme') !== 'light', b = $('btnTheme');
+    b.textContent = dark ? '主題：深色' : '主題：淺色'; b.setAttribute('aria-pressed', String(dark));
+  }
+  $('btnTheme').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next); lsSet(THEME_KEY, next); paintTheme();
+  });
+  if (darkMq && darkMq.addEventListener) darkMq.addEventListener('change', e => { const saved = lsGet(THEME_KEY); if (saved === 'dark' || saved === 'light') return; document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light'); paintTheme(); });
+  // 備註：手機預設收合；桌機一律展開（維持原樣）
+  const narrowMq = window.matchMedia ? window.matchMedia('(max-width:768px)') : null;
+  const syncNote = () => { $('noteFold').open = !(narrowMq && narrowMq.matches); };
+  $('noteFold').querySelector('summary').addEventListener('click', e => { if (!(narrowMq && narrowMq.matches)) e.preventDefault(); });
+  if (narrowMq && narrowMq.addEventListener) narrowMq.addEventListener('change', syncNote);
+  syncNote(); paintTheme();
 
   // ---------- 啟動 ----------
   let g0 = lsGet(SEL); if (!Small.GROUPS.some(g => g.id === g0)) g0 = 'g3';
