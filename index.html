@@ -284,6 +284,11 @@ details.more>.help,details.more>.guide{margin-top:8px}
 .swapdlg .sw-err:not(:empty){border:2px solid var(--red);border-radius:10px;padding:8px 10px}
 .swapdlg .sw-acts{display:flex;flex-wrap:wrap;gap:8px}
 .dv-acts{display:none}
+.rn-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0}
+.rn-grid>div{min-width:0}
+.rn-err{margin:0 0 8px;color:var(--red);font-weight:700}
+.rn-err:not(:empty){border:2px solid var(--red);border-radius:10px;padding:8px 10px}
+.rn-acts{display:flex;flex-wrap:wrap;gap:8px}
 .notefold[open]>summary{margin-bottom:6px}
 @media (min-width:769px){
   .notefold>summary{cursor:default}
@@ -324,6 +329,8 @@ details.more>.help,details.more>.guide{margin-top:8px}
   .calwrap{display:none}
   .pcards{display:grid;grid-template-columns:1fr}
   .ov-grid{grid-template-columns:1fr}
+  .rn-grid{grid-template-columns:1fr}
+  .rn-err{font-size:16px}
   .ovc-h b{font-size:20px}
   .ovc-h small,.ovc-x,.ovc-w,.ovc-e,.ov-leg{font-size:15px}
   .ovd{font-size:16px;padding:6px 8px}
@@ -441,6 +448,14 @@ details.more>.help,details.more>.guide{margin-top:8px}
         <tbody id="peopleBody"></tbody>
       </table>
       <p class="help" id="peopleHelp"></p>
+    </details>
+
+    <details class="fold" id="renameFold">
+      <summary><span>改名（小組名稱、組長、組員）</span></summary>
+      <p class="help">改的是畫面上的名字（分頁、表格、每人休假總覽、備註…都會跟著換），排假資料不會動。名字不能空白，同一組的名字不能一樣。</p>
+      <div class="rn-grid" id="renameGrid"></div>
+      <p class="rn-err" id="renameErr" role="alert"></p>
+      <div class="rn-acts"><button class="btn primary" id="btnRenameSave" type="button">儲存名字</button><button class="btn" id="btnRenameReset" type="button">恢復預設名字</button></div>
     </details>
 
     <details class="fold" id="fixedFold" open>
@@ -2069,6 +2084,47 @@ details.more>.help,details.more>.guide{margin-top:8px}
   const shuffle = (arr, rng) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const md2 = (key, d) => { const m = Number(String(key).split('-')[1]); return `${m}/${d}`; };
 
+  // ---------- 改名（名字另存，排假資料仍用組 id／人員 id L、M1、M2… 對應，改名不影響排假資料） ----------
+  const NAME_MAX = 12, GROUP_NAME_MAX = 16;
+  const slotIds = gid => ['L', ...groupDef(gid).members.map((m, i) => 'M' + (i + 1))];
+  const slotLabel = k => k === 'name' ? '小組名稱' : k === 'L' ? '組長名字' : `組員 ${k.slice(1)} 的名字`;
+  function defaultNames(gid) { const g = groupDef(gid), o = { name: g.name, L: g.leader }; g.members.forEach((m, i) => { o['M' + (i + 1)] = m[0]; }); return o; }
+  // 讀進來的改名資料：只留看得懂的組與欄位、去頭尾空白、空白的丟掉（回到預設）
+  function cleanNames(raw) {
+    const out = {}; if (!raw || typeof raw !== 'object') return out;
+    for (const g of GROUPS) {
+      const r = raw[g.id]; if (!r || typeof r !== 'object') continue;
+      const o = {};
+      for (const k of ['name', ...slotIds(g.id)]) { const v = typeof r[k] === 'string' ? r[k].trim().slice(0, k === 'name' ? GROUP_NAME_MAX : NAME_MAX) : ''; if (v) o[k] = v; }
+      if (Object.keys(o).length) out[g.id] = o;
+    }
+    return out;
+  }
+  function groupLabel(names, gid) { const g = GROUPS.find(x => x.id === gid) || GROUPS[0], o = names && names[g.id]; return (o && o.name) || g.name; }
+  function personLabel(names, gid, id) { const g = groupDef(gid), o = names && names[g.id]; return (o && o[id]) || defaultNames(g.id)[id] || ''; }
+  // 把改過的名字套到這組的設定上（只換名字，id、路線、組別都不動）
+  function applyNames(cfg, names) { const o = names && names[cfg.gid]; if (o) for (const p of cfg.people) if (o[p.id]) p.name = o[p.id]; return cfg; }
+  // 檢查一份名字（draft＝{ name, L, M1, … }）：不能空白、太長、同組名字不能重複、小組名稱不能跟別組一樣
+  function validateNames(draft, gid, names) {
+    const errors = [], clean = {}, seen = {}; draft = draft && typeof draft === 'object' ? draft : {};
+    for (const k of ['name', ...slotIds(gid)]) {
+      const v = String(draft[k] == null ? '' : draft[k]).trim(), max = k === 'name' ? GROUP_NAME_MAX : NAME_MAX;
+      if (!v) { errors.push(`${slotLabel(k)}不能空白。`); continue; }
+      if (v.length > max) { errors.push(`${slotLabel(k)}最多 ${max} 個字。`); continue; }
+      clean[k] = v;
+      if (k === 'name') { const o = GROUPS.find(g => g.id !== groupDef(gid).id && groupLabel(names, g.id) === v); if (o) errors.push(`小組名稱「${v}」跟別組一樣了。`); }
+      else if (seen[v]) errors.push(`名字「${v}」重複了，同一組的名字不能一樣。`); else seen[v] = true;
+    }
+    return { errors, clean };
+  }
+  // 存起來的只有「跟預設不一樣」的欄位；全部跟預設一樣就整組不留
+  function withNames(names, gid, clean) {
+    const g = groupDef(gid), def = defaultNames(g.id), next = cleanNames(JSON.parse(JSON.stringify(names || {}))), o = {};
+    for (const k of Object.keys(def)) if (clean && clean[k] && clean[k] !== def[k]) o[k] = clean[k];
+    if (Object.keys(o).length) next[g.id] = o; else delete next[g.id];
+    return next;
+  }
+
   // ---------- 設定 ----------
   function defaultCfg(gid) {
     const g = groupDef(gid);
@@ -2555,7 +2611,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     md.runCap = res.runCap || 0; md.lowLeave = !!res.lowLeave; md.relaxed = (res.relaxed || []).map(r => ({ id: r.id, name: r.name, cap: r.cap }));
   }
 
-  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapLines, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, overview, applyResult, diagnose, md2 };
+  const Small = { NAME_MAX, GROUP_NAME_MAX, defaultNames, cleanNames, groupLabel, personLabel, applyNames, validateNames, withNames, slotIds, zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapLines, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, overview, applyResult, diagnose, md2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = Small; else root.SmallCore = Small;
 })(typeof self !== 'undefined' ? self : this);
 </script>
@@ -2563,19 +2619,20 @@ details.more>.help,details.more>.guide{margin-top:8px}
 (function () {
   'use strict';
   const Core = LeaveCore, Small = SmallCore, esc = Core.escapeHtml;
-  const KEY = '送餐小組排假表_v1_', SEL = '送餐小組排假表_v1_selected';
+  const KEY = '送餐小組排假表_v1_', SEL = '送餐小組排假表_v1_selected', NAMES_KEY = '送餐小組排假表_names_v1';   // 改名另存一個 key（{ v:1, names:{ g1:{ name, L, M1… } } }），只存跟預設不一樣的
   const WD = ['日', '一', '二', '三', '四', '五', '六'];
   const $ = id => document.getElementById(id);
-  const st = { view: 'cal', tap: false, gid: 'g3', cfg: null, month: '', months: {}, badSig: '', badProblems: [], busy: false, msg: null, dvDay: 0, dvMonth: '', dvOpen: false };
+  const st = { view: 'cal', tap: false, gid: 'g3', cfg: null, month: '', months: {}, badSig: '', badProblems: [], names: {}, busy: false, msg: null, dvDay: 0, dvMonth: '', dvOpen: false };
 
   // ---------- 儲存 ----------
   function lsGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function lsDel(k) { try { window.localStorage.removeItem(k); return true; } catch (e) { return false; } }
   function lsSet(k, v) { try { window.localStorage.setItem(k, v); return true; } catch (e) { return false; } }
   function nowMonth() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
   function validKey(k) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(String(k || '')); }
   function loadGroup(gid) {
     let raw = null; try { raw = JSON.parse(lsGet(KEY + gid) || 'null'); } catch (e) { raw = null; }
-    st.gid = gid; st.cfg = Small.normalizeCfg(raw && raw.cfg, gid);
+    st.gid = gid; st.cfg = Small.applyNames(Small.normalizeCfg(raw && raw.cfg, gid), st.names);
     st.months = {}; const src = raw && raw.months && typeof raw.months === 'object' ? raw.months : {};
     for (const k of Object.keys(src)) if (validKey(k)) st.months[k] = Small.normalizeMonth(st.cfg, k, src[k]);
     st.month = raw && validKey(raw.month) ? raw.month : nowMonth();
@@ -2589,6 +2646,29 @@ details.more>.help,details.more>.guide{margin-top:8px}
     const months = {}; for (const k of Object.keys(st.months)) months[k] = st.months[k];
     lsSet(KEY + st.gid, JSON.stringify({ v: 1, cfg: st.cfg, month: st.month, months }));
     lsSet(SEL, st.gid);
+  }
+  function loadNames() { let raw = null; try { raw = JSON.parse(lsGet(NAMES_KEY) || 'null'); } catch (e) { raw = null; } st.names = Small.cleanNames(raw && raw.names); }
+  function saveNames() { if (Object.keys(st.names).length) lsSet(NAMES_KEY, JSON.stringify({ v: 1, names: st.names })); else lsDel(NAMES_KEY); }
+  const groupLabel = gid => Small.groupLabel(st.names, gid);
+  // 目前這組畫面上的名字（小組名稱＋每個人）；改名時拿它當底，只換要改的欄位
+  function currentNames() { const o = { name: groupLabel(st.gid) }; for (const p of st.cfg.people) o[p.id] = p.name; return o; }
+  // 驗證通過才寫入：名字只存在改名資料與這組設定裡（用人員 id 對應），月份資料、指定休、排好的班表都不碰
+  function commitNames(draft) {
+    const v = Small.validateNames(draft, st.gid, st.names); if (v.errors.length) return v;
+    st.names = Small.withNames(st.names, st.gid, v.clean); saveNames();
+    for (const p of st.cfg.people) if (v.clean[p.id]) p.name = v.clean[p.id];
+    st.badSig = ''; st.badProblems = []; save(); return v;
+  }
+  function tryRename(pid, value) { const d = currentNames(); if (!(pid in d)) return { errors: ['找不到這個人。'] }; d[pid] = value; return commitNames(d); }
+  function resetNames() {
+    st.names = {}; saveNames();
+    for (const g of Small.GROUPS) {
+      const def = Small.defaultNames(g.id);
+      if (g.id === st.gid) { for (const p of st.cfg.people) if (def[p.id]) p.name = def[p.id]; continue; }
+      let raw = null; try { raw = JSON.parse(lsGet(KEY + g.id) || 'null'); } catch (e) { raw = null; }
+      if (raw && raw.cfg && Array.isArray(raw.cfg.people)) { for (const p of raw.cfg.people) if (p && def[p.id]) p.name = def[p.id]; lsSet(KEY + g.id, JSON.stringify(raw)); }
+    }
+    st.badSig = ''; st.badProblems = []; save();
   }
   function ensureMonth() { if (!st.months[st.month]) st.months[st.month] = Small.newMonth(st.cfg, st.month); return st.months[st.month]; }
   const md = () => st.months[st.month];
@@ -2605,7 +2685,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   // ---------- 畫面：控制列 ----------
   function paintControls() {
     const sel = $('groupSel');
-    if (!sel.options.length) sel.innerHTML = Small.GROUPS.map(g => `<option value="${g.id}">${esc(g.name)}（${g.members.length + 1} 人）</option>`).join('');
+    sel.innerHTML = Small.GROUPS.map(g => `<option value="${g.id}">${esc(groupLabel(g.id))}（${g.members.length + 1} 人）</option>`).join('');
     sel.value = st.gid; $('month').value = st.month;
     const m = md(), dim = dimOf(), h = Core.restHintForMonth(st.month);
     $('quota').max = dim; $('quota').value = m.quota.L;
@@ -2627,7 +2707,12 @@ details.more>.help,details.more>.guide{margin-top:8px}
     }
     (st.cfg.vacant || []).forEach((v, i) => rows.push(`<tr><td data-label="角色">無固定組員的路線</td><td data-label="名字"><span class="help">（沒有固定組員，組長或機動組跑）</span></td><td data-label="負責路線"><input type="text" maxlength="6" value="${esc(v)}" data-group="${st.gid}" data-vi="${i}" data-f="vac" aria-label="沒有固定組員的路線"></td><td class="wide"></td></tr>`));
     $('peopleBody').innerHTML = rows.join('');
-    $('peopleHelp').textContent = fixedLeader ? `${st.cfg.people[0].name}是這組的固定組長，名字不能修改；組員的名字、路線都可以改。` : '組長、組員的名字和路線都可以改（路線代號用英文字母，例如 B、AB）。';
+    $('peopleHelp').textContent = fixedLeader ? `${st.cfg.people[0].name}是這組的固定組長，這裡不能直接改名（要改請用「改名」）；組員的名字、路線都可以改。` : '組長、組員的名字和路線都可以改（路線代號用英文字母，例如 B、AB）。名字不能空白。';
+  }
+  function paintRename() {
+    const cur = currentNames(), slots = ['name', ...st.cfg.people.map(p => p.id)];
+    $('renameGrid').innerHTML = slots.map(k => { const lab = k === 'name' ? '小組名稱（分頁標籤）' : k === 'L' ? '組長名字' : `組員 ${k.slice(1)} 的名字（${esc(st.cfg.people.find(p => p.id === k).route)} 線）`; return `<div><label class="f" for="rn_${k}">${lab}</label><input type="text" id="rn_${k}" data-slot="${k}" maxlength="${k === 'name' ? Small.GROUP_NAME_MAX : Small.NAME_MAX}" value="${esc(cur[k])}" autocomplete="off"></div>`; }).join('');
+    $('renameErr').textContent = '';
   }
   function paintFixed() {
     const m = md(), dim = dimOf(), parts = [];
@@ -2843,7 +2928,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   function capLine(m) {
     if (m.lowLeave) return '每人應休 ≤10 天：連上上限直接用 6 天排出（不先試 4、5 天）。';
     const rc = m.runCap || 0; let s = `連上上限：先以 4 天為目標（再放寬 5、6 天）；這次全組可以用 ${rc} 天排出`;
-    if (m.relaxed && m.relaxed.length) s += `，其中 ${m.relaxed.map(r => `${r.name}放寬到 ${r.cap} 天`).join('、')}`;
+    if (m.relaxed && m.relaxed.length) s += `，其中 ${m.relaxed.map(r => `${(st.cfg.people.find(p => p.id === r.id) || r).name}放寬到 ${r.cap} 天`).join('、')}`;
     return s + '。';
   }
   // 每人休假總覽：跟著目前這組、這個月、目前的班表（含手動換線）重畫
@@ -2869,7 +2954,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   }
   function renderAll(opt) {
     opt = opt || {};
-    paintControls(); if (!opt.keepPeople) paintPeople(); paintFixed(); paintBoard(); paintOverview(); paintNotes();
+    paintControls(); if (!opt.keepPeople) { paintPeople(); paintRename(); } paintFixed(); paintBoard(); paintOverview(); paintNotes();
     paintStatus(); paintVerify();
   }
 
@@ -2913,7 +2998,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     $('peopleBody').querySelectorAll('input[data-f]').forEach(t => {
       if (!t.isConnected || t.dataset.group !== st.gid) return;
       const f = t.dataset.f, p = st.cfg.people.find(x => x.id === t.dataset.pid);
-      if (f === 'name' && p && !(p.role === 'leader' && Small.isFixedLeader(st.gid))) { const v = t.value.trim().slice(0, 12); if (v !== p.name) { p.name = v; dirty = true; } }
+      if (f === 'name' && p && !(p.role === 'leader' && Small.isFixedLeader(st.gid))) { const v = t.value.trim().slice(0, 12); if (v !== p.name && !tryRename(p.id, v).errors.length) dirty = true; }
       else if (f === 'route' && p) { const v = t.value.trim().toUpperCase().slice(0, 6); if (v !== p.route) { p.route = v; st.badSig = ''; dirty = true; } }
       else if (f === 'vac') { const i = Number(t.dataset.vi), v = t.value.trim().toUpperCase().slice(0, 6); if (i in st.cfg.vacant && v !== st.cfg.vacant[i]) { st.cfg.vacant[i] = v; st.badSig = ''; dirty = true; } }
       else if (f === 'carry' && p) { const q = Core.clampInt(t.value, 0, 6, 0); if (q !== ((md().carry || {})[p.id] || 0)) { md().carry[p.id] = q; clearSchedule(md()); dirty = true; } }
@@ -2926,7 +3011,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   function settle(except) { flushEdits(); const a = document.activeElement; if (a && a !== except && a !== document.body && typeof a.blur === 'function') a.blur(); }
   window.addEventListener('pagehide', flushEdits);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushEdits(); });
-  $('groupSel').addEventListener('change', e => { const to = e.target.value; settle(e.target); save(); loadGroup(to); lsSet(SEL, st.gid); renderAll(); toast('已切換到 ' + Small.groupDef(st.gid).name); });
+  $('groupSel').addEventListener('change', e => { const to = e.target.value; settle(e.target); save(); loadGroup(to); lsSet(SEL, st.gid); renderAll(); toast('已切換到 ' + groupLabel(st.gid)); });
   $('month').addEventListener('change', e => {
     settle(e.target);
     if (!validKey(e.target.value)) { e.target.value = st.month; return; }
@@ -2942,7 +3027,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   $('peopleBody').addEventListener('change', e => {
     const t = e.target, f = t.dataset.f; if (!f) return;
     if (!t.isConnected || t.dataset.group !== st.gid) return;   // 重畫後才送來的舊 change：欄位已不在畫面上、或屬於別組，一律不寫
-    if (f === 'name') { const p = st.cfg.people.find(x => x.id === t.dataset.pid); if (!p || (p.role === 'leader' && Small.isFixedLeader(st.gid))) { t.value = p ? p.name : ''; return; } p.name = t.value.trim().slice(0, 12); }
+    if (f === 'name') { const p = st.cfg.people.find(x => x.id === t.dataset.pid); if (!p || (p.role === 'leader' && Small.isFixedLeader(st.gid))) { t.value = p ? p.name : ''; return; } const rn = tryRename(p.id, t.value); if (rn.errors.length) { t.value = p.name; toast(rn.errors[0]); return; } t.value = p.name; paintRename(); }
     else if (f === 'route') { const p = st.cfg.people.find(x => x.id === t.dataset.pid); p.route = t.value.trim().toUpperCase().slice(0, 6); t.value = p.route; st.badSig = ''; }
     else if (f === 'vac') { const i = Number(t.dataset.vi); st.cfg.vacant[i] = t.value.trim().toUpperCase().slice(0, 6); t.value = st.cfg.vacant[i]; st.badSig = ''; }
     else if (f === 'carry') { const q = Core.clampInt(t.value, 0, 6, 0); t.value = q; md().carry[t.dataset.pid] = q; changed(); renderAll({ keepPeople: true }); return; }
@@ -2950,6 +3035,16 @@ details.more>.help,details.more>.guide{margin-top:8px}
     save(); st.msg = null;
     if (errs.length) setStatus('error', `名單有問題：<ul>${errs.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`);
     renderAll({ keepPeople: true });
+  });
+  $('btnRenameSave').addEventListener('click', () => {
+    const d = {}; $('renameGrid').querySelectorAll('input[data-slot]').forEach(t => { d[t.dataset.slot] = t.value; });
+    const v = commitNames(d);
+    if (v.errors.length) { $('renameErr').textContent = '名字還不能存：' + v.errors.join(' '); return; }
+    st.msg = null; setStatus('ok', '名字已更新；排假資料沒有動。'); renderAll(); toast('已儲存名字');
+  });
+  $('btnRenameReset').addEventListener('click', () => {
+    if (typeof window.confirm === 'function' && !window.confirm('要把所有小組的名稱、組長、組員名字都恢復成預設嗎？（排假資料不會動）')) return;
+    flushEdits(); resetNames(); st.msg = null; setStatus('ok', '已恢復預設名字；排假資料沒有動。'); renderAll(); toast('已恢復預設名字');
   });
   $('fixedBody').addEventListener('click', e => {
     const b = e.target.closest('button[data-day]'); if (!b) return;
@@ -3013,6 +3108,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   syncNote(); paintTheme();
 
   // ---------- 啟動 ----------
+  loadNames();
   let g0 = lsGet(SEL); if (!Small.GROUPS.some(g => g.id === g0)) g0 = 'g3';
   loadGroup(g0); renderAll();
 })();
