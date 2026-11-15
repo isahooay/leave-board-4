@@ -1,0 +1,17 @@
+{
+  "name": "送餐小組排假表",
+  "short_name": "排假表",
+  "description": "送餐小組排假表（作者：帥）",
+  "lang": "zh-Hant-TW",
+  "start_url": "./GROK-送餐-四人排假表-2026-11-03-0703.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#101820",
+  "theme_color": "#101820",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>送餐小組排假表（單組版）</title>
 <meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#101820">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="排假表">
+<meta name="author" content="帥">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script>
 (function () {
   var t = null;
@@ -532,7 +541,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
       <div class="sw-acts"><button class="btn primary" id="swOk" type="button">確認換線</button><button class="btn hidden" id="swRestore" type="button">還原隨機（這天）</button><button class="btn" id="swCancel" type="button">取消</button></div>
     </form>
   </dialog>
-  <footer class="site-foot">GROK 輔助</footer>
+  <footer class="site-foot">作者：帥｜修改日期 2026-11-15 08:05（台灣時間）<br>GROK 輔助</footer>
 </div>
 <div class="toast hidden" id="toast" role="status"></div>
 
@@ -2057,7 +2066,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   const { uniqueDays, targetOff, weekWindows, runLimit, longLeaves, leaveDays, mulberry32, daysInMonthOf, MAX_RUN } = Core;
   const GROUPS = [
     { id: 'g1', name: '施品卉組', leader: '施品卉', members: [['許庭碩', 'BD'], ['蔣鏞', 'G'], ['陳奕捷', 'H']], vacant: [] },
-    { id: 'g2', name: '林芷妃組', leader: '林芷妃', members: [['林晉德', 'F'], ['張云琪', 'AB']], vacant: ['I'] },
+    { id: 'g2', name: '林芷妃組', leader: '林芷妃', members: [['林晉德', 'F'], ['張云琪', 'AB'], ['', 'I']], vacant: [] },   // fix1：第 4 位 I 線空位（名字空白＝機動人員；舊資料的 vacant:['I'] 會轉成這一格）
     { id: 'g3', name: '謝和成組', leader: '謝和成', members: [['劉耀齊', 'B'], ['王銘志', 'C'], ['許志賓', 'E']], vacant: [], fixedLeader: true },
     { id: 'g4', name: '李欣妮組', leader: '李欣妮', members: [['鄭智穎', 'J'], ['王鈺淩', 'A'], ['湯玉芬', 'K']], vacant: [] }
   ];
@@ -2070,21 +2079,34 @@ details.more>.help,details.more>.guide{margin-top:8px}
   const md2 = (key, d) => { const m = Number(String(key).split('-')[1]); return `${m}/${d}`; };
 
   // ---------- 設定 ----------
+  // fix1：roster＝完整名單（組長＋組員，組員名字可空白）；people／vacant 由 roster 推出來：
+  // 名字空白的組員不排班，他的路線變成「沒有固定組員」的線（沿用原本 vacant 邏輯，由組長或機動組代跑），畫面顯示「機動人員」
+  function applyRoster(cfg) {
+    cfg.people = cfg.roster.filter(p => p.role === 'leader' || p.name);
+    cfg.vacant = cfg.roster.filter(p => p.role === 'member' && !p.name).map(p => p.route);
+    return cfg;
+  }
   function defaultCfg(gid) {
     const g = groupDef(gid);
-    return { gid: g.id, people: [{ id: 'L', name: g.leader, role: 'leader', route: '' }, ...g.members.map((m, i) => ({ id: 'M' + (i + 1), name: m[0], role: 'member', route: m[1] }))], vacant: g.vacant.slice() };
+    return applyRoster({ gid: g.id, gname: g.name, roster: [{ id: 'L', name: g.leader, role: 'leader', route: '' }, ...g.members.map((m, i) => ({ id: 'M' + (i + 1), name: m[0], role: 'member', route: m[1] }))], people: [], vacant: [] });
   }
   function normalizeCfg(raw, gid) {
     gid = groupDef(gid).id;
     const base = defaultCfg(gid); raw = raw && typeof raw === 'object' ? raw : {};
-    const people = base.people.map(p => {
-      const r = Array.isArray(raw.people) ? raw.people.find(x => x && x.id === p.id) : null;
+    const isNew = Array.isArray(raw.roster), src = isNew ? raw.roster : (Array.isArray(raw.people) ? raw.people : null);
+    let vi = 0;
+    const roster = base.roster.map(p => {
+      const r = src ? src.find(x => x && x.id === p.id) : null;
       const name = String((r && r.name) == null ? '' : r.name).trim().slice(0, 12);
       const route = String((r && r.route) == null ? '' : r.route).trim().toUpperCase().slice(0, 6);
-      return { id: p.id, role: p.role, name: p.role === 'leader' && isFixedLeader(gid) ? groupDef(gid).leader : (r ? name : p.name), route: p.role === 'leader' ? '' : (r ? route : p.route) };
+      if (!r && !isNew && p.role === 'member' && !p.name) {   // 舊資料（fix1 以前）沒有這一格：補空位，路線沿用舊的 vacant
+        const v = Array.isArray(raw.vacant) ? String(raw.vacant[vi] == null ? '' : raw.vacant[vi]).trim().toUpperCase().slice(0, 6) : p.route; vi++;
+        return { id: p.id, role: p.role, name: '', route: v };
+      }
+      return { id: p.id, role: p.role, name: r ? name : p.name, route: p.role === 'leader' ? '' : (r ? route : p.route) };
     });
-    const vacant = base.vacant.map((v, i) => { const x = Array.isArray(raw.vacant) ? String(raw.vacant[i] == null ? '' : raw.vacant[i]).trim().toUpperCase().slice(0, 6) : v; return Array.isArray(raw.vacant) ? x : v; });
-    return { gid, people, vacant };
+    const gname = String(raw.gname == null ? '' : raw.gname).trim().slice(0, 20) || base.gname;
+    return applyRoster({ gid, gname, roster, people: [], vacant: [] });
   }
   function validateCfg(cfg) {
     const errors = [], seen = {}, seenR = {};
@@ -2105,7 +2127,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   // 轉成 core.js 認得的設定（一組、三條線），這樣 targetOff、personCaps、distributionReport…都能直接沿用
   function coreCfg(cfg) {
     const routes = [...cfg.people.filter(p => p.role === 'member').map(p => p.route), ...(cfg.vacant || [])];
-    return { routes, groups: [{ id: 'g1', name: groupDef(cfg.gid).name, routes, priority: '' }], people: cfg.people.map(p => ({ id: p.id, name: p.name, role: p.role, group: 'g1', route: p.route })) };
+    return { routes, groups: [{ id: 'g1', name: cfg.gname || groupDef(cfg.gid).name, routes, priority: '' }], people: cfg.people.map(p => ({ id: p.id, name: p.name, role: p.role, group: 'g1', route: p.route })) };
   }
   function newMonth(cfg, key) { const md = Core.rawMonthData(coreCfg(cfg), key); delete md.moveOut; delete md.moveIn; md.runCap = 0; md.relaxed = []; md.lowLeave = false; return md; }
   function setQuota(cfg, md, q) { for (const p of cfg.people) md.quota[p.id] = q; }
@@ -2113,6 +2135,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     const dim = daysInMonthOf(key), md = Core.normalizeMonthData(coreCfg(cfg), key, raw);
     const q = Core.clampInt(raw && raw.quota && raw.quota.L, 0, dim, Core.defaultQuotaForMonth(key));
     setQuota(cfg, md, q); md.moveOut = {}; md.moveIn = {}; md.swaps = cleanSwaps(raw && raw.swaps, dim);
+    for (const p of cfg.roster || []) if (raw && !cfg.people.some(x => x.id === p.id)) { const fx = uniqueDays(raw.fixed && raw.fixed[p.id], dim); if (fx.length) md.fixed[p.id] = fx; const c = Core.clampInt(raw.carry && raw.carry[p.id], 0, 6, 0); if (c) md.carry[p.id] = c; }   // fix1
     return md;
   }
 
@@ -2543,7 +2566,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
       lines.push(`整組沒人休的日子共 ${zeroDays.length} 天（休假合計比天數少，無法避免）：機動組代跑一位組員的線，那位組員當天「多出」（不算休假）；${Object.keys(per).map(id => `${nm(id)} ${per[id].length} 天（${per[id].join('、')}）`).join('、')}。`);
     } else lines.push('每天都至少有 1 人休，沒有整組沒人休的日子。');
     for (const p of s.people.slice(1)) lines.push(`${p.name}（${p.route} 線）：休 ${p.rest} 天${p.leave ? `、請假 ${p.leave} 天` : ''}，最長連休 ${p.maxOffRun} 天、最長連上 ${p.maxRun} 天。`);
-    if ((cfg.vacant || []).length) lines.push(`${cfg.vacant.join('、')} 線沒有固定組員，每天由組長或機動組跑（組長休假那天一定是機動組）。`);
+    if ((cfg.vacant || []).length) lines.push(`${cfg.vacant.join('、')} 線：機動人員（沒有固定組員），每天由組長或機動組跑（組長休假那天一定是機動組）。`);
     { const sk = Object.keys(md.swaps || {}).map(Number).sort((x, y) => x - y); if (sk.length) lines.push(`手動換線 ${sk.length} 天（${sk.map(d => md2(key, d)).join('、')}）：已蓋在隨機結果上，按「還原隨機」可回到原本的排法。`); }
     const q = md.quota.L, hint = Core.restHintForMonth(key);
     lines.push(`每人應休日數 ${q} 天（${hint.official ? `週末 ${hint.weekendCount} 天＋國定假日／補假 ${hint.holidayCount} 天` : '沒有該年度的官方假日資料，用預設值'}），同組每人一樣。`);
@@ -2555,7 +2578,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
     md.runCap = res.runCap || 0; md.lowLeave = !!res.lowLeave; md.relaxed = (res.relaxed || []).map(r => ({ id: r.id, name: r.name, cap: r.cap }));
   }
 
-  const Small = { zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapLines, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, overview, applyResult, diagnose, md2 };
+  const Small = { applyRoster, zeroMin, dayCapFor, GROUPS, groupDef, isFixedLeader, IDS, MAX_OFF, MAX_TRIES, TOTAL_MS, defaultCfg, normalizeCfg, validateCfg, coreCfg, newMonth, normalizeMonth, setQuota, dayPlans, mobileDays, swapDay, dayIssues, trySwap, swapLines, swapChoices, dropRuleBreaking, LEADER_RULE, reconcileSwaps, cleanSwaps, distSpec, feasibilityProblems, solve, verify, regenerate, configSig, offSig, fixCaps, stats, noteLines, overview, applyResult, diagnose, md2 };
   if (typeof module !== 'undefined' && module.exports) module.exports = Small; else root.SmallCore = Small;
 })(typeof self !== 'undefined' ? self : this);
 </script>
@@ -2605,7 +2628,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   // ---------- 畫面：控制列 ----------
   function paintControls() {
     const sel = $('groupSel');
-    if (!sel.options.length) sel.innerHTML = Small.GROUPS.map(g => `<option value="${g.id}">${esc(g.name)}（${g.members.length + 1} 人）</option>`).join('');
+    sel.innerHTML = Small.GROUPS.map(g => { const c = groupCfg(g.id); return `<option value="${g.id}">${esc(c.gname)}（${c.people.length} 人）</option>`; }).join('');   // fix1：組名可改
     sel.value = st.gid; $('month').value = st.month;
     const m = md(), dim = dimOf(), h = Core.restHintForMonth(st.month);
     $('quota').max = dim; $('quota').value = m.quota.L;
@@ -2617,17 +2640,48 @@ details.more>.help,details.more>.guide{margin-top:8px}
     $('btnGen').textContent = md().generated ? '重新隨機排假' : '隨機排假';
   }
   function paintPeople() {
-    const fixedLeader = Small.isFixedLeader(st.gid), rows = [];
-    for (const p of st.cfg.people) {
-      const m = md(), lead = p.role === 'leader';
+    const rows = [`<tr><td data-label="角色">組別</td><td class="wide" colspan="3" data-label="組別名稱"><input type="text" maxlength="20" value="${esc(st.cfg.gname)}" data-group="${st.gid}" data-f="gname" aria-label="組別名稱"></td></tr>`];
+    for (const p of st.cfg.roster) {
+      const m = md(), lead = p.role === 'leader', blank = !lead && !p.name;
       rows.push(`<tr><td data-label="角色">${lead ? '組長' : '組員'}</td>
-        <td data-label="名字"><input type="text" maxlength="12" value="${esc(p.name)}" data-group="${st.gid}" data-pid="${p.id}" data-f="name" aria-label="${lead ? '組長' : '組員'}名字"${lead && fixedLeader ? ' readonly' : ''}></td>
-        <td data-label="負責路線">${lead ? '<span class="help">代班（不固定）</span>' : `<input type="text" maxlength="6" value="${esc(p.route)}" data-group="${st.gid}" data-pid="${p.id}" data-f="route" aria-label="${esc(p.name)}的路線">`}</td>
-        <td class="num" data-label="月初已連上（天）"><input type="number" min="0" max="6" inputmode="numeric" value="${(m.carry && m.carry[p.id]) || 0}" data-group="${st.gid}" data-pid="${p.id}" data-f="carry" aria-label="${esc(p.name)}月初已連上天數"></td></tr>`);
+        <td data-label="名字"><input type="text" maxlength="20" value="${esc(p.name)}" data-group="${st.gid}" data-pid="${p.id}" data-f="name" aria-label="${lead ? '組長' : '組員'}名字"${lead ? '' : ' placeholder="待輸入"'}>${blank ? '<small class="help slot-mob">目前：機動人員</small>' : ''}</td>
+        <td data-label="負責路線">${lead ? '<span class="help">代班（不固定）</span>' : `<input type="text" maxlength="6" value="${esc(p.route)}" data-group="${st.gid}" data-pid="${p.id}" data-f="route" aria-label="${esc(p.name || '機動人員')}的路線">`}</td>
+        <td class="num" data-label="月初已連上（天）">${blank ? '<span class="help">—</span>' : `<input type="number" min="0" max="6" inputmode="numeric" value="${(m.carry && m.carry[p.id]) || 0}" data-group="${st.gid}" data-pid="${p.id}" data-f="carry" aria-label="${esc(p.name)}月初已連上天數">`}</td></tr>`);
     }
-    (st.cfg.vacant || []).forEach((v, i) => rows.push(`<tr><td data-label="角色">無固定組員的路線</td><td data-label="名字"><span class="help">（沒有固定組員，組長或機動組跑）</span></td><td data-label="負責路線"><input type="text" maxlength="6" value="${esc(v)}" data-group="${st.gid}" data-vi="${i}" data-f="vac" aria-label="沒有固定組員的路線"></td><td class="wide"></td></tr>`));
     $('peopleBody').innerHTML = rows.join('');
-    $('peopleHelp').textContent = fixedLeader ? `${st.cfg.people[0].name}是這組的固定組長，名字不能修改；組員的名字、路線都可以改。` : '組長、組員的名字和路線都可以改（路線代號用英文字母，例如 B、AB）。';
+    $('peopleHelp').textContent = `組別名稱、組長、組員的名字和路線都可以改（名字最多 ${NAME_MAX} 個字、同一組不能重複；路線代號用英文字母，例如 B、AB）。組員名字留白＝機動人員，那條線由組長或機動組代跑。`;
+  }
+  // ---------- fix1：名單防呆（組名、組長、組員） ----------
+  const NAME_MAX = 10;
+  const charLen = v => [...v].length;
+  function groupCfg(gid) {   // 其他組的組名／人數（從各組自己的存檔讀，不改動它）
+    if (gid === st.gid && st.cfg) return st.cfg;
+    let raw = null; try { raw = JSON.parse(lsGet(KEY + gid) || 'null'); } catch (e) { raw = null; }
+    return Small.normalizeCfg(raw && raw.cfg, gid);
+  }
+  function checkGroupName(v) {
+    if (!v) return `組別名稱不能空白，請輸入 1～${NAME_MAX} 個字。`;
+    if (charLen(v) > NAME_MAX) return `組別名稱最多 ${NAME_MAX} 個字（現在 ${charLen(v)} 個字），請縮短後再輸入；這次沒有儲存。`;
+    return '';
+  }
+  function checkName(p, v) {
+    const who = p.role === 'leader' ? '組長' : '組員';
+    if (!v) return p.role === 'leader' ? `組長名字不能空白，請輸入 1～${NAME_MAX} 個字；這次沒有儲存。` : '';
+    if (charLen(v) > NAME_MAX) return `${who}名字最多 ${NAME_MAX} 個字（現在 ${charLen(v)} 個字），請縮短後再輸入；這次沒有儲存。`;
+    if (v === '機動人員' || v === '機動組') return `「${v}」是系統用字，不能當名字（組員欄留白就會顯示「機動人員」）；這次沒有儲存。`;
+    const dup = st.cfg.roster.find(x => x !== p && x.name === v);
+    if (dup) return `名字「${v}」跟這組的${dup.role === 'leader' ? '組長' : '組員'}重複了，同一組的名字不能一樣；這次沒有儲存。`;
+    return '';
+  }
+  function nameErr(t, msg) { setStatus('error', esc(msg)); toast(msg); }
+  // 套用名字；組員從空白變成有名字（或反過來）會改變排班人數：重整各月資料（排過的假、指定休都保留），回傳 toggled
+  function setName(p, v) {
+    const err = checkName(p, v); if (err) return { err };
+    if (v === p.name) return {};
+    const toggled = p.role === 'member' && !p.name !== !v;
+    p.name = v;
+    if (toggled) { Small.applyRoster(st.cfg); for (const k of Object.keys(st.months)) st.months[k] = Small.normalizeMonth(st.cfg, k, st.months[k]); }
+    return { toggled };
   }
   function paintFixed() {
     const m = md(), dim = dimOf(), parts = [];
@@ -2912,9 +2966,10 @@ details.more>.help,details.more>.guide{margin-top:8px}
     let dirty = false;
     $('peopleBody').querySelectorAll('input[data-f]').forEach(t => {
       if (!t.isConnected || t.dataset.group !== st.gid) return;
-      const f = t.dataset.f, p = st.cfg.people.find(x => x.id === t.dataset.pid);
-      if (f === 'name' && p && !(p.role === 'leader' && Small.isFixedLeader(st.gid))) { const v = t.value.trim().slice(0, 12); if (v !== p.name) { p.name = v; dirty = true; } }
-      else if (f === 'route' && p) { const v = t.value.trim().toUpperCase().slice(0, 6); if (v !== p.route) { p.route = v; st.badSig = ''; dirty = true; } }
+      const f = t.dataset.f, p = st.cfg.roster.find(x => x.id === t.dataset.pid);
+      if (f === 'gname') { const v = t.value.trim(); if (checkGroupName(v)) t.value = st.cfg.gname; else if (v !== st.cfg.gname) { st.cfg.gname = v; dirty = true; } }
+      else if (f === 'name' && p) { const r = setName(p, t.value.trim()); if (r.err) t.value = p.name; else if (r.toggled) { clearSchedule(md()); st.badSig = ''; dirty = true; } else if (r.toggled === false) dirty = true; }
+      else if (f === 'route' && p) { const v = t.value.trim().toUpperCase().slice(0, 6); if (v !== p.route) { p.route = v; Small.applyRoster(st.cfg); st.badSig = ''; dirty = true; } }
       else if (f === 'vac') { const i = Number(t.dataset.vi), v = t.value.trim().toUpperCase().slice(0, 6); if (i in st.cfg.vacant && v !== st.cfg.vacant[i]) { st.cfg.vacant[i] = v; st.badSig = ''; dirty = true; } }
       else if (f === 'carry' && p) { const q = Core.clampInt(t.value, 0, 6, 0); if (q !== ((md().carry || {})[p.id] || 0)) { md().carry[p.id] = q; clearSchedule(md()); dirty = true; } }
     });
@@ -2926,7 +2981,7 @@ details.more>.help,details.more>.guide{margin-top:8px}
   function settle(except) { flushEdits(); const a = document.activeElement; if (a && a !== except && a !== document.body && typeof a.blur === 'function') a.blur(); }
   window.addEventListener('pagehide', flushEdits);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushEdits(); });
-  $('groupSel').addEventListener('change', e => { const to = e.target.value; settle(e.target); save(); loadGroup(to); lsSet(SEL, st.gid); renderAll(); toast('已切換到 ' + Small.groupDef(st.gid).name); });
+  $('groupSel').addEventListener('change', e => { const to = e.target.value; settle(e.target); save(); loadGroup(to); lsSet(SEL, st.gid); renderAll(); toast('已切換到 ' + st.cfg.gname); });
   $('month').addEventListener('change', e => {
     settle(e.target);
     if (!validKey(e.target.value)) { e.target.value = st.month; return; }
@@ -2942,8 +2997,15 @@ details.more>.help,details.more>.guide{margin-top:8px}
   $('peopleBody').addEventListener('change', e => {
     const t = e.target, f = t.dataset.f; if (!f) return;
     if (!t.isConnected || t.dataset.group !== st.gid) return;   // 重畫後才送來的舊 change：欄位已不在畫面上、或屬於別組，一律不寫
-    if (f === 'name') { const p = st.cfg.people.find(x => x.id === t.dataset.pid); if (!p || (p.role === 'leader' && Small.isFixedLeader(st.gid))) { t.value = p ? p.name : ''; return; } p.name = t.value.trim().slice(0, 12); }
-    else if (f === 'route') { const p = st.cfg.people.find(x => x.id === t.dataset.pid); p.route = t.value.trim().toUpperCase().slice(0, 6); t.value = p.route; st.badSig = ''; }
+    if (f === 'gname') { const v = t.value.trim(), err = checkGroupName(v); if (err) { t.value = st.cfg.gname; nameErr(t, err); return; } if (v !== st.cfg.gname) { st.cfg.gname = v; save(); st.msg = null; setStatus('ok', `組別名稱已改成「${esc(v)}」。`); } renderAll({ keepPeople: true }); return; }
+    if (f === 'name') {
+      const p = st.cfg.roster.find(x => x.id === t.dataset.pid); if (!p) return;
+      const v = t.value.trim(), r = setName(p, v);
+      if (r.err) { t.value = p.name; nameErr(t, r.err); return; }
+      t.value = p.name;
+      if (r.toggled) { changed(v ? `${esc(v)} 已加入（${esc(p.route)} 線，照一般組員排假）；之前排的班表已清除（指定休保留），請再按「隨機排假」。` : `組員欄已留白，${esc(p.route)} 線改由機動人員（組長或機動組）代跑；之前排的班表已清除（指定休保留），請再按「隨機排假」。`); renderAll(); return; }
+    }
+    else if (f === 'route') { const p = st.cfg.roster.find(x => x.id === t.dataset.pid); if (!p) return; p.route = t.value.trim().toUpperCase().slice(0, 6); t.value = p.route; Small.applyRoster(st.cfg); st.badSig = ''; }
     else if (f === 'vac') { const i = Number(t.dataset.vi); st.cfg.vacant[i] = t.value.trim().toUpperCase().slice(0, 6); t.value = st.cfg.vacant[i]; st.badSig = ''; }
     else if (f === 'carry') { const q = Core.clampInt(t.value, 0, 6, 0); t.value = q; md().carry[t.dataset.pid] = q; changed(); renderAll({ keepPeople: true }); return; }
     const errs = Small.validateCfg(st.cfg);
@@ -3015,6 +3077,8 @@ details.more>.help,details.more>.guide{margin-top:8px}
   // ---------- 啟動 ----------
   let g0 = lsGet(SEL); if (!Small.GROUPS.some(g => g.id === g0)) g0 = 'g3';
   loadGroup(g0); renderAll();
+  // fix1：PWA（加到主畫面可離線）；用相對路徑，GitHub Pages 子路徑 /leave-board-4/ 也適用
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
 </body>
